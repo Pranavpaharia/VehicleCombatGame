@@ -19,13 +19,15 @@
 
 AVehicleUE5Hud::AVehicleUE5Hud()
 {
-	static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("/Engine/EngineFonts/RobotoDistanceField"));
-	HUDFont = Font.Object;
+	//static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("Font'/Game/Vehicles/Fonts/SampleFont.SampleFont'"));
+	//HUDFont = Font.Object;
 }
 
 void AVehicleUE5Hud::DrawHUD()
 {
 	Super::DrawHUD();
+
+	return;
 
 	// Calculate ratio from 720p
 	const float HUDXRatio = Canvas->SizeX / 1280.f;
