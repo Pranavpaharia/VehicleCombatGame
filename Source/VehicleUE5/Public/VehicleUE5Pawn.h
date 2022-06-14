@@ -48,6 +48,10 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UAudioComponent* EngineSoundComponent;
 
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* RotatingAnchorSceneComponent;
+
+
 public:
 	AVehicleUE5Pawn();
 

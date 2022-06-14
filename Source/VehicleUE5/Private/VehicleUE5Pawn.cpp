@@ -19,15 +19,6 @@
 #include "UObject/ConstructorHelpers.h"
 #include "GameFramework/PlayerController.h"
 
-#ifndef HMD_MODULE_INCLUDED
-#define HMD_MODULE_INCLUDED 0
-#endif
-
-// Needed for VR Headset
-#if HMD_MODULE_INCLUDED
-#include "IXRTrackingSystem.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
-#endif // HMD_MODULE_INCLUDED
 
 const FName AVehicleUE5Pawn::LookUpBinding("LookUp");
 const FName AVehicleUE5Pawn::LookRightBinding("LookRight");
@@ -115,13 +106,16 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	// Set the inertia scale. This controls how the mass of the vehicle is distributed.
 	VehicleMovement->InertiaTensorScale = FVector(1.0f, 1.333f, 1.2f);
 
+	RotatingAnchorSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RotatingSceneComponent"));
+	RotatingAnchorSceneComponent->SetupAttachment(RootComponent);
+
 	// Create a spring arm component for our chase camera
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 34.0f));
 	SpringArm->SetWorldRotation(FRotator(-20.0f, 0.0f, 0.0f));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 125.0f;
-	SpringArm->bEnableCameraLag = false;
+	SpringArm->SetupAttachment(RotatingAnchorSceneComponent);
+	SpringArm->TargetArmLength = 400.0f;
+	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = false;
 	SpringArm->bInheritPitch = true;
 	SpringArm->bInheritYaw = true;
@@ -131,7 +125,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->SetRelativeLocation(FVector(-125.0, 0.0f, 0.0f));
-	Camera->SetRelativeRotation(FRotator(10.0f, 0.0f, 0.0f));
+	Camera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 	Camera->bUsePawnControlRotation = false;
 	Camera->FieldOfView = 90.f;
 
@@ -161,6 +155,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	InCarGear->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
 	InCarGear->SetupAttachment(GetMesh());
 	
+
 	// Setup the audio component and allocate it a sound cue
 	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(TEXT("/Game/Vehicles/Sound/Engine_Loop_Cue.Engine_Loop_Cue"));
 	EngineSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSound"));
@@ -255,6 +250,8 @@ void AVehicleUE5Pawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
+
+	RotatingAnchorSceneComponent->AddLocalRotation(FRotator(0, 1, 0), false, nullptr, ETeleportType::None);
 	// Setup the flag to say we are in reverse gear
 	bInReverseGear = GetVehicleMovement()->GetCurrentGear() < 0;
 	
@@ -268,12 +265,6 @@ void AVehicleUE5Pawn::Tick(float Delta)
 	SetupInCarHUD();
 
 	bool bHMDActive = false;
-#if HMD_MODULE_INCLUDED
-	if ((GEngine->XRSystem.IsValid() == true ) && ( (GEngine->XRSystem->IsHeadTrackingAllowed() == true) || (GEngine->IsStereoscopic3D() == true)))
-	{
-		bHMDActive = true;
-	}
-#endif // HMD_MODULE_INCLUDED
 	if( bHMDActive == false )
 	{
 		if ( (InputComponent) && (bInCarCameraActive == true ))
@@ -301,26 +292,15 @@ void AVehicleUE5Pawn::BeginPlay()
 	InCarSpeed->SetVisibility(bInCarCameraActive);
 	InCarGear->SetVisibility(bInCarCameraActive);
 
-	// Enable in car view if HMD is attached
-#if HMD_MODULE_INCLUDED
-	bWantInCar = UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled();
-#endif // HMD_MODULE_INCLUDED
-
 	EnableIncarView(bWantInCar);
 	// Start an engine sound playing
 	EngineSoundComponent->Play();
+
+	DisableInput(GetLocalViewingPlayerController());
 }
 
 void AVehicleUE5Pawn::OnResetVR()
 {
-#if HMD_MODULE_INCLUDED
-	if (GEngine->XRSystem.IsValid())
-	{
-		GEngine->XRSystem->ResetOrientationAndPosition();
-		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
-		GetController()->SetControlRotation(FRotator());
-	}
-#endif // HMD_MODULE_INCLUDED
 }
 
 void AVehicleUE5Pawn::UpdateHUDStrings()
