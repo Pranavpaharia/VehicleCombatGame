@@ -20,7 +20,10 @@ public class VehicleUE5 : ModuleRules
                     "Voice",
                     "CoreOnline",
                     "ReplicationGraph",
-                    "Niagara"
+                    "Niagara",
+                    "GameplayAbilities",
+                    "GameplayTags",
+                    "GameplayTasks"
                 }
             );
 
@@ -32,7 +35,8 @@ public class VehicleUE5 : ModuleRules
                     "NetCore",
                     "UMG",
                     "AudioMixer",
-                    "AudioModulation"
+                    "AudioModulation",
+                    "EnhancedInput"
                 }
             );
 
