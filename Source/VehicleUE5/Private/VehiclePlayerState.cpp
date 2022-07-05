@@ -66,7 +66,7 @@ void AVehiclePlayerState::SetColorId(uint8 colorIndex)
 void AVehiclePlayerState::OnRep_ColorId()
 {
 	UE_LOG(LogTemp, Warning, TEXT("On Rep_ColorId is: %d"), ColorId);
-	OnSetColorEvent.ExecuteIfBound(ColorId);
+	OnSetColorEvent.Broadcast(ColorId);
 }
 
 void AVehiclePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

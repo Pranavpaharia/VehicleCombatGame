@@ -11,7 +11,7 @@
  */
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCandidateNameChanged, FString, candidateName);
-DECLARE_DELEGATE_OneParam(FOnSetColorIdEvent,const int32);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetColorIdEvent, int32, colorID);
 
 
 UCLASS()
@@ -55,10 +55,10 @@ protected:
 
 	virtual void PostInitializeComponents() override;
 
-	FORCEINLINE const FString GetCandidateName() const {
-		return CandidateName;
-	}
+	
 
+
+public:
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerNickName(FString Name);
 
@@ -69,11 +69,15 @@ protected:
 	FOnCandidateNameChanged OnCandidateNameChanged;
 
 
-	//UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable)
 	FOnSetColorIdEvent OnSetColorEvent;
 
 	UFUNCTION()
 	void SetColorId(uint8 colorIndex);
+
+	FORCEINLINE const FString GetCandidateName() const {
+		return CandidateName;
+	}
 
 	
 };
