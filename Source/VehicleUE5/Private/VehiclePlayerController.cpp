@@ -3,11 +3,14 @@
 
 #include "VehiclePlayerController.h"
 #include "OnlineSubsystemUtils.h"
+#include "VehicleUE5GameMode.h"
 #include "VehicleUE5Pawn.h"
+#include "VehicleUE5GameInstance.h"
+
 
 AVehiclePlayerController::AVehiclePlayerController()
 {
-
+	bCameraMove = false;
 }
 
 void AVehiclePlayerController::PostInitializeComponents()
@@ -18,7 +21,7 @@ void AVehiclePlayerController::PostInitializeComponents()
 void AVehiclePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	//DisableInput(this);
 
 	//Show widget based on single player or multiplayer
@@ -35,7 +38,13 @@ void AVehiclePlayerController::BeginPlay()
 	if (GetNetMode() == ENetMode::NM_Client)
 	{
 		//Show connected client UI
+		
 		//Send Player Information
+		UVehicleUE5GameInstance* gInstance = Cast<UVehicleUE5GameInstance>(GetWorld()->GetGameInstance());
+		if (gInstance)
+		{
+			SetPlayerInfo(gInstance->PlayerName);
+		}
 
 	}
 
@@ -51,6 +60,11 @@ void AVehiclePlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 }
 
+void AVehiclePlayerController::RotateCarCamera(const FVector2D pos)
+{
+	
+}
+
 void AVehiclePlayerController::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
@@ -63,6 +77,13 @@ void AVehiclePlayerController::OnRep_PlayerState()
 void AVehiclePlayerController::SetPlayerInfo_Implementation(const FString& CandidateName)
 {
 	//Set Player Properties
+	AVehicleUE5GameMode* gm = Cast<AVehicleUE5GameMode>(GetWorld()->GetAuthGameMode());
+
+	if (gm)
+	{
+		AVehiclePlayerState* pState = Cast<AVehiclePlayerState>(PlayerState);
+		pState->SetPlayerNickName(CandidateName);
+	}
 }
 
 bool AVehiclePlayerController::SetPlayerInfo_Validate(const FString& CandidateName)
@@ -122,4 +143,14 @@ void AVehiclePlayerController::StartPlayerGame_Implementation()
 bool AVehiclePlayerController::StartPlayerGame_Validate()
 {
 	return GetLocalRole() == ENetRole::ROLE_Authority;
+}
+
+void AVehiclePlayerController::StartOfflineGame()
+{
+	GetPawn()->EnableInput(this);
+	AVehicleUE5Pawn* VehiclePawn =  Cast<AVehicleUE5Pawn>(GetPawn());
+
+	check(VehiclePawn)
+
+	VehiclePawn->StopWelcomeScreenCameraRotation();
 }

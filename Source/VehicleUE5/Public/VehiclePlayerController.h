@@ -52,6 +52,16 @@ public:
 	UFUNCTION(Server, WithValidation, Reliable, BlueprintCallable)
 	void SelectCarColor(int32 ColorIndex);
 
+	UFUNCTION(BlueprintCallable)
+	void StartOfflineGame();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool bCameraMove;
+
+	UFUNCTION(BlueprintCallable)
+	void RotateCarCamera(const FVector2D pos);
+
+
 	
 
 };
