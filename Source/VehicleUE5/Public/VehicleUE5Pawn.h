@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -51,6 +53,7 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RotatingAnchorSceneComponent;
 
+	//void StartGame();
 
 public:
 	AVehicleUE5Pawn();
@@ -82,12 +85,28 @@ public:
 	/** Initial offset of incar camera */
 	FVector InternalCameraOrigin;
 
+	UPROPERTY()
+	bool bWelcomeClosed;
+
+	UPROPERTY(EditAnywhere,Category = Inputs)
+	UInputMappingContext* IC_Vehicle;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_Move;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_MoveCamera;
+
+
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End Pawn interface
 
 	// Begin Actor interface
 	virtual void Tick(float Delta) override;
+
+
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -96,6 +115,9 @@ public:
 
 	/** Handle pressing forwards */
 	void MoveForward(float Val);
+	
+	/** Handle pressing forwards */
+	void LookUpCamera(float Val);
 
 	/** Setup the strings used on the hud */
 	void SetupInCarHUD();
@@ -106,13 +128,22 @@ public:
 	/** Handle pressing right */
 	void MoveRight(float Val);
 	/** Handle handbrake pressed */
+	UFUNCTION(BlueprintCallable)
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
+	
+	UFUNCTION(BlueprintCallable)
 	void OnHandbrakeReleased();
 	/** Switch between cameras */
 	void OnToggleCamera();
 	/** Handle reset VR device */
 	void OnResetVR();
+
+	void MoveOnJoyStick(const FInputActionValue& stickPos);
+
+	void MoveCamera(const FInputActionValue& stickPos);
+
+	void StopWelcomeScreenCameraRotation();
 
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
@@ -150,6 +181,10 @@ public:
 	FORCEINLINE UTextRenderComponent* GetInCarGear() const { return InCarGear; }
 	/** Returns EngineSoundComponent subobject **/
 	FORCEINLINE UAudioComponent* GetEngineSoundComponent() const { return EngineSoundComponent; }
+
+	FORCEINLINE USceneComponent* GetRotatingCameraComponent() const { return RotatingAnchorSceneComponent; }
+
+	
 };
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

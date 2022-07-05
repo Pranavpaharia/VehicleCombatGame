@@ -168,25 +168,87 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 
 	bIsLowFriction = false;
 	bInReverseGear = false;
+
+	bWelcomeClosed = true;
 }
 
 void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UEnhancedInputComponent* EnhancedPlayerInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AVehicleUE5Pawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVehicleUE5Pawn::MoveRight);
-	PlayerInputComponent->BindAxis(LookUpBinding);
+	//PlayerInputComponent->BindAxis(LookUpBinding, this, &AVehicleUE5Pawn::LookUpCamera);
 	PlayerInputComponent->BindAxis(LookRightBinding);
 
-	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &AVehicleUE5Pawn::OnHandbrakePressed);
-	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &AVehicleUE5Pawn::OnHandbrakeReleased);
-	PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AVehicleUE5Pawn::OnToggleCamera);
+	//PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &AVehicleUE5Pawn::OnHandbrakePressed);
+	//PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &AVehicleUE5Pawn::OnHandbrakeReleased);
+	//PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AVehicleUE5Pawn::OnToggleCamera);
 
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AVehicleUE5Pawn::OnResetVR); 
+	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AVehicleUE5Pawn::OnResetVR); 
+
+	const APlayerController* PC = GetController<APlayerController>();
+	check(PC)
+	ULocalPlayer* LP = PC->GetLocalPlayer();
+	check(LP)
+	UEnhancedInputLocalPlayerSubsystem* EnhancedSubSystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	check(EnhancedSubSystem)
+	EnhancedSubSystem->AddMappingContext(IC_Vehicle, 1);
+
+
+	check(EnhancedPlayerInputComponent)
+
+	EnhancedPlayerInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveOnJoyStick);
+	EnhancedPlayerInputComponent->BindAction(IA_MoveCamera, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveCamera);
+
+}
+
+void AVehicleUE5Pawn::LookUpCamera(float Val)
+{
+	UE_LOG(LogTemp, Warning, TEXT("On  Touch: %f"), Val);
+	//RotatingAnchorSceneComponent->AddLocalRotation(FRotator(Val, 0, 0), false, nullptr, ETeleportType::None);
+}
+
+void AVehicleUE5Pawn::MoveCamera(const FInputActionValue& stickPos)
+{
+	FVector2D JoystickPosition = stickPos.Get<FVector2D>();
+	UE_LOG(LogTemp, Warning, TEXT("Move Camera: %s"), *JoystickPosition.ToString());
+	
+}
+
+void AVehicleUE5Pawn::MoveOnJoyStick(const FInputActionValue& stickPos)
+{
+	FVector2D JoystickPosition = stickPos.Get<FVector2D>();
+
+
+	if (JoystickPosition.Y > 0 )
+	{
+		GetVehicleMovementComponent()->SetThrottleInput(JoystickPosition.Length());
+		GetVehicleMovementComponent()->SetBrakeInput(0.f);
+	}
+
+	if (JoystickPosition.Y < 0 )
+	{
+		GetVehicleMovementComponent()->SetThrottleInput(0);
+		GetVehicleMovementComponent()->SetBrakeInput(JoystickPosition.Length());
+	}
+
+	if(JoystickPosition.X != 0)
+	GetVehicleMovementComponent()->SetSteeringInput(JoystickPosition.X);
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Joystick Magnitude: %d"), JoystickPosition.Length());
+}
+
+void AVehicleUE5Pawn::StopWelcomeScreenCameraRotation()
+{
+	bWelcomeClosed = true;
+	RotatingAnchorSceneComponent->SetRelativeRotation(FRotator::ZeroRotator);
 }
 
 void AVehicleUE5Pawn::MoveForward(float Val)
@@ -250,7 +312,7 @@ void AVehicleUE5Pawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
 
-
+	if(!bWelcomeClosed)
 	RotatingAnchorSceneComponent->AddLocalRotation(FRotator(0, 1, 0), false, nullptr, ETeleportType::None);
 	// Setup the flag to say we are in reverse gear
 	bInReverseGear = GetVehicleMovement()->GetCurrentGear() < 0;
@@ -289,14 +351,14 @@ void AVehicleUE5Pawn::BeginPlay()
 	bool bWantInCar = false;
 	// First disable both speed/gear displays 
 	bInCarCameraActive = false;
-	InCarSpeed->SetVisibility(bInCarCameraActive);
-	InCarGear->SetVisibility(bInCarCameraActive);
+	//InCarSpeed->SetVisibility(bInCarCameraActive);
+	//InCarGear->SetVisibility(bInCarCameraActive);
 
-	EnableIncarView(bWantInCar);
+	//EnableIncarView(bWantInCar);
 	// Start an engine sound playing
 	EngineSoundComponent->Play();
 
-	DisableInput(GetLocalViewingPlayerController());
+	//DisableInput(GetLocalViewingPlayerController());
 }
 
 void AVehicleUE5Pawn::OnResetVR()
@@ -360,6 +422,8 @@ void AVehicleUE5Pawn::UpdatePhysicsMaterial()
 		}
 	}
 }
+
+
 
 #undef LOCTEXT_NAMESPACE
 
