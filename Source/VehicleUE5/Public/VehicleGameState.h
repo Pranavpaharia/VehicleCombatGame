@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "VehiclePlayerState.h"
 #include "VehicleGameState.generated.h"
 
 /**
@@ -22,8 +23,17 @@ class VEHICLEUE5_API AVehicleGameState : public AGameState
 
 	virtual void HandleMatchHasEnded() override;
 
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+public:
+
 	UPROPERTY(BlueprintAssignable)
 	FOnNewPlayerChatMessage OnNewPlayerChatMessage;
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	TArray<AVehiclePlayerState*> VehiclePlayerStateList;
 
 
 	

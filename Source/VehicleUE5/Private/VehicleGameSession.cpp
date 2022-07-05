@@ -60,6 +60,8 @@ void AVehicleGameSession::RegisterServer()
 				sessionSettings->bAllowJoinInProgress = true;
 				sessionSettings->bAllowJoinViaPresence = true;
 				sessionSettings->bUsesPresence = true;
+				sessionSettings->NumPrivateConnections = 10;
+				sessionSettings->NumPublicConnections = 10;
 				sessionSettings->Set(SETTING_MAPNAME, FString("ServerMap"), EOnlineDataAdvertisementType::ViaOnlineService);
 
 				OnCreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
