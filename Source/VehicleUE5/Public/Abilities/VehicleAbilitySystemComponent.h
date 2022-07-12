@@ -9,9 +9,21 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FReceiveDamageDelegate, UVehicleAbilitySystemComponent*, sourceASC, float, UnmitigatedDamage, float, MitigatedDamage);
 UCLASS()
 class VEHICLEUE5_API UVehicleAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+
+	UVehicleAbilitySystemComponent();
+
+	int32 GetDefaultAbilityLevel() const;
+
+	static UVehicleAbilitySystemComponent* GetAbilitySystemComponentFromActor(const AActor* Actor, bool LookForComponent = false);
+
+	void ReceiveDamage(UVehicleAbilitySystemComponent* SourceARC, float UnmitigatedDamage, float MitigatedDamage);
+
+	FReceiveDamageDelegate OnReceiveDamage;
 };
