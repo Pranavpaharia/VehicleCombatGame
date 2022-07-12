@@ -97,3 +97,25 @@ void AVehicleUE5GameMode::ConnectToDedicatedServer(const FString& address)
 		UE_LOG(LogTemp, Warning, TEXT("ClientBeacon->GetConnectionState(): %s"), ClientBeacon->GetConnectionState());
 	}
 }
+
+void AVehicleUE5GameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	UE_LOG(LogTemp, Warning, TEXT("ALudoProjectGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)"));
+
+	AActor* actr = ChoosePlayerStart(NewPlayer);
+	if (actr != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerStart Actor Found!"));
+		FVector vec = (actr)->GetActorLocation();
+		UE_LOG(LogTemp, Warning, TEXT("Position of start actor found %s"), *vec.ToString());
+
+	}
+
+	//FActorSpawnParameters params;
+	//ATP_VehiclePawn* carPawn = GetWorld()->SpawnActor<ATP_VehiclePawn>(VehiclePawnClass,actr->GetActorLocation(),actr->GetActorRotation(),params);
+	//NewPlayer->Possess(carPawn);
+
+
+}

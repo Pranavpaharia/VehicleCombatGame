@@ -33,7 +33,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ConnectToDedicatedServer(const FString& address);
 
-
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 };
 
