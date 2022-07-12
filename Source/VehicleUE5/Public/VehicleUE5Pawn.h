@@ -6,6 +6,9 @@
 #include "WheeledVehiclePawn.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Abilities/VehicleAbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "Abilities/VehicleAttributeSet.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -18,7 +21,7 @@ class UAudioComponent;
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 UCLASS(config=Game)
-class AVehicleUE5Pawn : public AWheeledVehiclePawn
+class AVehicleUE5Pawn : public AWheeledVehiclePawn ,public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -53,10 +56,18 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RotatingAnchorSceneComponent;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	UVehicleAbilitySystemComponent* VehicleAbilitySystemComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attributes")
+	UVehicleAttributeSet* AttributesSetBase;
+
 	//void StartGame();
 
 public:
 	AVehicleUE5Pawn();
+
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	/** The current speed as a string eg 10 km/h */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)

@@ -98,10 +98,14 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	// Physics settings
 	// Adjust the center of mass - the buggy is quite low
 	UPrimitiveComponent* UpdatedPrimitive = Cast<UPrimitiveComponent>(VehicleMovement->UpdatedComponent);
+	UpdatedPrimitive->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	if (UpdatedPrimitive)
 	{
 		UpdatedPrimitive->BodyInstance.COMNudge = FVector(8.0f, 0.0f, -15.0f);
 	}
+
+	
+
 
 	// Set the inertia scale. This controls how the mass of the vehicle is distributed.
 	VehicleMovement->InertiaTensorScale = FVector(1.0f, 1.333f, 1.2f);
@@ -162,13 +166,15 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	EngineSoundComponent->SetSound(SoundCue.Object);
 	EngineSoundComponent->SetupAttachment(GetMesh());
 
+	VehicleAbilitySystemComponent = CreateDefaultSubobject<UVehicleAbilitySystemComponent>(FName("VehicleAbilitySystemComponent"));
+	VehicleAbilitySystemComponent->SetIsReplicated(true);
+	VehicleAbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	// Colors for the in-car gear display. One for normal one for reverse
 	GearDisplayReverseColor = FColor(255, 0, 0, 255);
 	GearDisplayColor = FColor(255, 255, 255, 255);
 
 	bIsLowFriction = false;
 	bInReverseGear = false;
-
 	bWelcomeClosed = true;
 }
 
@@ -423,6 +429,10 @@ void AVehicleUE5Pawn::UpdatePhysicsMaterial()
 	}
 }
 
+UAbilitySystemComponent* AVehicleUE5Pawn::GetAbilitySystemComponent() const
+{
+	return VehicleAbilitySystemComponent;
+}
 
 
 #undef LOCTEXT_NAMESPACE
