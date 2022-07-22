@@ -8,6 +8,7 @@
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSubsystemUtils.h"
+#include "VehicleGameSession.h"
 #include "VehicleUE5GameInstance.generated.h"
 
 /**
@@ -26,6 +27,7 @@ public:
 
 	virtual void StartGameInstance() override;
 
+
 	TSharedPtr< const FUniqueNetId > GetUniqueNetIdFromControllerId(const int ControllerId);
 
 	UPROPERTY(BlueprintReadWrite, EditInstanceOnly)
@@ -33,4 +35,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetPlayerName(FString const& name);
+
+	AVehicleGameSession* GetGameSession() const;
+
+	UFUNCTION(BlueprintCallable)
+	void FindSessionsOnline(ULocalPlayer* PlayerOwner, bool bIsDedicatedServer);
+
+	void GetCurrentSessionID_AsString(UObject* WordlContextObject, FString& SessionID);
 };
