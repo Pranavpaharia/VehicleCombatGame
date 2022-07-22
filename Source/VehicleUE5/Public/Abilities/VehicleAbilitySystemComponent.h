@@ -21,6 +21,9 @@ public:
 
 	int32 GetDefaultAbilityLevel() const;
 
+	bool CharacterAbilitiesGiven = false;
+	bool StartupEffectsApplied = false;
+
 	static UVehicleAbilitySystemComponent* GetAbilitySystemComponentFromActor(const AActor* Actor, bool LookForComponent = false);
 
 	void ReceiveDamage(UVehicleAbilitySystemComponent* SourceARC, float UnmitigatedDamage, float MitigatedDamage);

@@ -18,6 +18,15 @@ class VEHICLEUE5_API UVehicleGameplayAbility : public UGameplayAbility
 public:
 	UVehicleGameplayAbility();
 
+	UPROPERTY(BlueprintReadOnly,EditAnywhere, Category = "Ability")
+	EVehiclePowerAbilityID AbilityPowerInputID = EVehiclePowerAbilityID::None;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
+	EVehiclePowerAbilityID AbilityPowerID = EVehiclePowerAbilityID::None;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability")
+	bool ActicateAbilityOnGranted = false;
+
 	virtual void OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 
