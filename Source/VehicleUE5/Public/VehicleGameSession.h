@@ -19,11 +19,15 @@ enum SessionType
  * 
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCSOnStartSessionComplete, bool, Successful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FCSOnFindSessionsComplete, const TArray<FOnlineSessionSearchResult>& SessionResults, bool Successful);
+
 
 UCLASS()
 class VEHICLEUE5_API AVehicleGameSession : public AGameSession
 {
 	GENERATED_BODY()
+
+public:
 
 	AVehicleGameSession();
 
@@ -37,6 +41,10 @@ class VEHICLEUE5_API AVehicleGameSession : public AGameSession
 
 	virtual void RegisterPlayer(APlayerController* NewPlayer, const FUniqueNetIdRepl& UniqueId, bool bWasFromInvite) override;
 
+	virtual void UnregisterPlayer(const APlayerController* ExitingPlayer) override;
+
+	virtual void UnregisterPlayers(FName InSessionName, const TArray<FUniqueNetIdRepl>& Players) override;
+
 	bool bGameSessionCreated;
 
 	SessionType CurrentSessionType = SessionType::None;
@@ -48,10 +56,25 @@ class VEHICLEUE5_API AVehicleGameSession : public AGameSession
 	FOnStartSessionCompleteDelegate OnStartSessionCompleteDelegate;
 	FCSOnStartSessionComplete OnStartSessionCompleteEvent;
 
+	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
+	FCSOnFindSessionsComplete OnFindSessionCompleteEvent;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	FDelegateHandle FindSessionsCompleteDelegateHandle;
+
+
+	
 
 	virtual void OnCreateSessionComplete(FName SsName, bool bWasSuccessful);
 
 	void StartSession();
 
+	
+	void FindSessions(TSharedPtr<const FUniqueNetId> UserId, FName InSessionName, bool bIsLan, bool bIsPresence);
+
 	void OnStartOnlineGameComplete(FName SsName, bool bWasSuccessful);
+
+	void UpdateSessionJoinability(FName InSessionName, bool bPublicSearchable, bool bAllowInvites, bool bJoinViaPresence, bool bJoinViaPresenceFriendsOnly) override;
+
+	void OnFindSessionCompleted(bool bSuccessful);
+
 };

@@ -11,6 +11,7 @@ AVehicleGameSession::AVehicleGameSession()
 {
 	OnCreateSessionCompleteDelegate = FOnCreateSessionCompleteDelegate::CreateUObject(this, &AVehicleGameSession::OnCreateSessionComplete);
 	OnStartSessionCompleteDelegate = FOnStartSessionCompleteDelegate::CreateUObject(this, &AVehicleGameSession::OnStartOnlineGameComplete);
+	FindSessionsCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &AVehicleGameSession::OnFindSessionCompleted);
 	SessionName = FName("VehicleServerSession");
 }
 
@@ -29,6 +30,7 @@ void AVehicleGameSession::OnAutoLoginComplete(int32 LocalUserNum, bool bWasSucce
 void AVehicleGameSession::RegisterPlayer(APlayerController* NewPlayer, const FUniqueNetIdRepl& UniqueId, bool bWasFromInvite)
 {
 	Super::RegisterPlayer(NewPlayer, UniqueId, bWasFromInvite);
+	UE_LOG(LogTemp, Warning, TEXT("AVehicleGameSession::RegisterPlayer"));
 }
 
 void AVehicleGameSession::RegisterServer()
@@ -151,4 +153,78 @@ void AVehicleGameSession::OnStartOnlineGameComplete(FName SsName, bool bWasSucce
 void AVehicleGameSession::RegisterServerFailed()
 {
 	Super::RegisterServerFailed();
+}
+
+void AVehicleGameSession::UpdateSessionJoinability(FName InSessionName, bool bPublicSearchable, bool bAllowInvites, bool bJoinViaPresence, bool bJoinViaPresenceFriendsOnly)
+{
+	Super::UpdateSessionJoinability(InSessionName, bPublicSearchable, bAllowInvites, bJoinViaPresence, bJoinViaPresenceFriendsOnly);
+	UE_LOG(LogTemp, Warning, TEXT("AVehicleGameSession::UpdateSessionJoinability: %s"),*InSessionName.ToString());
+}
+
+void AVehicleGameSession::UnregisterPlayer(const APlayerController* ExitingPlayer)
+{
+	Super::UnregisterPlayer(ExitingPlayer);
+	UE_LOG(LogTemp, Warning, TEXT("UnRegisterPlayer in AVehicleGameSession : %s"),*ExitingPlayer->GetName() );
+
+}
+
+void AVehicleGameSession::UnregisterPlayers(FName InSessionName, const TArray<FUniqueNetIdRepl>& Players)
+{
+	Super::UnregisterPlayers(InSessionName, Players);
+	UE_LOG(LogTemp, Warning, TEXT("AVehicleGameSession::UnregisterPlayers in session name : %s"), *InSessionName.ToString());
+}
+
+void AVehicleGameSession::FindSessions(TSharedPtr<const FUniqueNetId> UserId, FName InSessionName, bool bIsLan, bool bIsPresence)
+{
+	IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld());
+	if (OnlineSub)
+	{
+		IOnlineSessionPtr Sessions = OnlineSub->GetSessionInterface();
+		if (Sessions.IsValid() && UserId.IsValid())
+		{
+			
+			FindSessionsCompleteDelegateHandle = Sessions->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
+			LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
+			LastSessionSearch->bIsLanQuery = bIsLan;
+			LastSessionSearch->MaxSearchResults = 10;
+			LastSessionSearch->QuerySettings.Set(SEARCH_DEDICATED_ONLY, true, EOnlineComparisonOp::Equals);
+			UE_LOG(LogTemp, Warning, TEXT("Prepared Finding Session Settings "));
+			const ULocalPlayer* localplayer = GetWorld()->GetFirstLocalPlayerFromController();
+			if (!Sessions->FindSessions(*localplayer->GetCachedUniqueNetId(), LastSessionSearch.ToSharedRef()))
+			{
+				Sessions->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
+
+				OnFindSessionCompleteEvent.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Successfully Called FindSessions from Session Interface "));
+			}
+
+			
+		}
+	}
+}
+
+void AVehicleGameSession::OnFindSessionCompleted(bool bSuccessful)
+{
+	const IOnlineSessionPtr sessionInterface = Online::GetSessionInterface(GetWorld());
+	if (sessionInterface)
+	{
+		sessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
+	}
+
+	if (LastSessionSearch->SearchResults.Num() <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No online Session Found  "));
+		OnFindSessionCompleteEvent.Broadcast(TArray<FOnlineSessionSearchResult>(), bSuccessful);
+		return;
+	}
+	FNamedOnlineSession* namedSession = sessionInterface->GetNamedSession(NAME_GameSession);
+	FString connectionStr = TEXT("");
+
+	sessionInterface->GetResolvedConnectString(NAME_GameSession, connectionStr, FName("7777"));
+	
+	UE_LOG(LogTemp, Warning, TEXT("Found Online Session :  %s"), *connectionStr);
+	OnFindSessionCompleteEvent.Broadcast(LastSessionSearch->SearchResults, bSuccessful);
 }
