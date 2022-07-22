@@ -179,21 +179,26 @@ void AVehiclePlayerController::ResetPosition_Implementation()
 	{
 		FActorSpawnParameters params;
 		
-		GetPawn()->Destroy(false, true);
-		OnUnPossess();
+		//GetPawn()->Destroy(false, true);
+		//OnUnPossess();
+		//AVehicleUE5Pawn* car = GetPawn<AVehicleUE5Pawn>();
+		//car->GetVehicleMovementComponent()->ResetVehicle();
+		this->Reset();
 
-		
 		TArray<AActor*> PlayerStartList;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStartList);
 
 		int32 randomIndex = FMath::RandRange(0, PlayerStartList.Num() - 1);
 		AActor* FindRandomPlayerStartActor = PlayerStartList[randomIndex];
 
+		gm->RestartPlayerAtPlayerStart(this, FindRandomPlayerStartActor);
+		//GetPawn()->SetActorLocation(FindRandomPlayerStartActor->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
 		//carPawn->SetActorLocation(FindRandomPlayerStartActor->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
 
-		AVehicleUE5Pawn* carPawn = GetWorld()->SpawnActor<AVehicleUE5Pawn>(AVehicleUE5Pawn::StaticClass(), FindRandomPlayerStartActor->GetActorLocation(), FindRandomPlayerStartActor->GetActorRotation(), params);
-		OnPossess(carPawn);
+		//AVehicleUE5Pawn* carPawn = GetWorld()->SpawnActor<AVehicleUE5Pawn>(AVehicleUE5Pawn::StaticClass(), FindRandomPlayerStartActor->GetActorLocation(), FindRandomPlayerStartActor->GetActorRotation(), params);
+		//OnPossess(carPawn);
 		
+		//GetPawn()->Restart();
 
 		//this->GetPawn()->DispatchRestart(true);
 		
