@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.0",
+	"EngineAssociation": "{FD2E6070-48DE-0110-CE47-0286E6FB9308}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"OnlineSubsystemUtils",
-				"GameplayAbilities"
+				"GameplayAbilities",
+				"UMG"
 			]
 		}
 	],
@@ -36,7 +37,6 @@
 			]
 		},
 		{
-
 			"Name": "RemoteSession",
 			"Enabled": true
 		},
@@ -47,8 +47,8 @@
 		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
-        },
-        {
+		},
+		{
 			"Name": "Bridge",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
@@ -56,7 +56,6 @@
 				"Mac",
 				"Linux"
 			]
-
 		}
 	]
 }
