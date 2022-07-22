@@ -49,6 +49,8 @@ public:
 	FGameplayAttributeData NitroMaxMana;
 	ATTRIBUTE_ACCESSORS(UVehicleAttributeSet, NitroMaxMana)
 
+
+protected:
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldValue);
 
