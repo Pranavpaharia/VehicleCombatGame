@@ -6,19 +6,23 @@
 
 
 UENUM(BlueprintType)
-enum class VehicleBasicAbilityID : uint8
+enum class EVehicleBasicAbilityID : uint8
 {
 	Alive,
 	Dead
 };
 
 UENUM(BlueprintType)
-enum class VehiclePowerAbilityID : uint8
+enum class EVehiclePowerAbilityID : uint8
 {
 	FireBullets,
 	FireRockets,
 	Mines,
-	Shield
+	Shield,
+	NitroBoost,
+	Confirm,
+	Cancel,
+	None
 };
 
 
@@ -28,4 +32,11 @@ enum class ETypesOfVehicleID : uint8
 	Vehicle01,
 	Vehicle02,
 	Vehicle03
+};
+
+UENUM(BlueprintType)
+enum class EPlayerConnectionType : uint8
+{
+	LocalConnection,
+	OnlineConnection
 };
