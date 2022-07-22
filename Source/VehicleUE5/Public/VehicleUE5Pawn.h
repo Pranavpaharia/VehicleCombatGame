@@ -7,8 +7,12 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Abilities/VehicleAbilitySystemComponent.h"
+#include "Abilities/VehicleGameplayAbility.h"
 #include "AbilitySystemInterface.h"
 #include "Abilities/VehicleAttributeSet.h"
+#include "Widgets/VehicleBaseInfoWidget.h"
+#include "Components/WidgetComponent.h"
+#include "VehicleUE5/VehicleUE5.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -56,11 +60,9 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn ,public IAbilitySystemInterfa
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RotatingAnchorSceneComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	UVehicleAbilitySystemComponent* VehicleAbilitySystemComponent;
+	TWeakObjectPtr <UVehicleAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Attributes")
-	UVehicleAttributeSet* AttributesSetBase;
+	TWeakObjectPtr <UVehicleAttributeSet> AttributesSetBase;
 
 	//void StartGame();
 
@@ -93,6 +95,19 @@ public:
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly)
 	bool bInReverseGear;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	UWidgetComponent* UIFloatingStatusBarComponent;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> PlayerInfoWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	UVehicleBaseInfoWidget* PlayerInfoWidget;
+
+	UVehicleBaseInfoWidget* GetFloatingStatusBar();
+
+	void VehicleDie();
+
 	/** Initial offset of incar camera */
 	FVector InternalCameraOrigin;
 
@@ -116,10 +131,49 @@ public:
 	// Begin Actor interface
 	virtual void Tick(float Delta) override;
 
+	bool ASCInputBound = false;
 
+	FGameplayTag DeadTag;
+	FGameplayTag EffectRemoveOnDeathTag;
+
+	UFUNCTION()
+	void InitializeFloatingStatusBar();
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void PostInitializeComponents() override;
+
+	virtual void OnRep_PlayerState() override;
+
+	void BindASCInput();
+
+	void AddCharacterAbilities();
+
+	void AddStartupEffects();
+
+	void InitializeAttributes();
+
+	void SetHealth(float Health);
+
+	void SetNitroMana(float nitro);
+
+	void RemoveCharacterAbilities();
+
+	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
+
+	FORCEINLINE int32 GetAbilityLevel(EVehiclePowerAbilityID AbilityID) const { return 1; }
+
+	FORCEINLINE int32 GetVehicleLevel() const { return 1; }
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UVehicleGameplayAbility>> DefaultVehicleAbilities;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TSubclassOf<UGameplayEffect> DefaultVehicleEffects;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
 
 public:
 	// End Actor interface
@@ -156,9 +210,23 @@ public:
 
 	void StopWelcomeScreenCameraRotation();
 
+	virtual void PossessedBy(AController* NewController) override;
+
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
 	static const FName EngineAudioRPM;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+		float GetHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+		float GetMaxHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+		float GetMana() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+		float GetMaxMana() const;
 
 private:
 	/** 

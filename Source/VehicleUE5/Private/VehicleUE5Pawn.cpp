@@ -4,6 +4,7 @@
 #include "VehicleUE5WheelFront.h"
 #include "VehicleUE5WheelRear.h"
 #include "VehicleUE5Hud.h"
+#include "VehicleUE5/VehicleUE5.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -17,7 +18,12 @@
 #include "Engine/Engine.h"
 #include "GameFramework/Controller.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "VehiclePlayerController.h"
+#include "Abilities/VehicleGameplayAbility.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerStart.h"
+#include "VehiclePlayerState.h"
 
 
 const FName AVehicleUE5Pawn::LookUpBinding("LookUp");
@@ -30,6 +36,10 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 AVehicleUE5Pawn::AVehicleUE5Pawn()
 {
+	//Setup Tags
+	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
+	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Effect.RemoveOnDeath"));
+
 	// Car mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/Game/Vehicles/Vehicle/Vehicle_SkelMesh.Vehicle_SkelMesh"));
 	GetMesh()->SetSkeletalMesh(CarMesh.Object);
@@ -159,6 +169,15 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	InCarGear->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
 	InCarGear->SetupAttachment(GetMesh());
 	
+	//Setup Widget Component
+	UIFloatingStatusBarComponent = CreateDefaultSubobject<UWidgetComponent>(FName("FloatingWidgetComponent"));
+	UIFloatingStatusBarComponent->SetupAttachment(GetMesh());
+	UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0,0,100));
+	UIFloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	UIFloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
+	UIFloatingStatusBarComponent->SetWidget(PlayerInfoWidget);
+	
+
 
 	// Setup the audio component and allocate it a sound cue
 	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(TEXT("/Game/Vehicles/Sound/Engine_Loop_Cue.Engine_Loop_Cue"));
@@ -166,9 +185,9 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	EngineSoundComponent->SetSound(SoundCue.Object);
 	EngineSoundComponent->SetupAttachment(GetMesh());
 
-	VehicleAbilitySystemComponent = CreateDefaultSubobject<UVehicleAbilitySystemComponent>(FName("VehicleAbilitySystemComponent"));
+	/*VehicleAbilitySystemComponent = CreateDefaultSubobject<UVehicleAbilitySystemComponent>(FName("VehicleAbilitySystemComponent"));
 	VehicleAbilitySystemComponent->SetIsReplicated(true);
-	VehicleAbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	VehicleAbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);*/
 	// Colors for the in-car gear display. One for normal one for reverse
 	GearDisplayReverseColor = FColor(255, 0, 0, 255);
 	GearDisplayColor = FColor(255, 255, 255, 255);
@@ -367,8 +386,201 @@ void AVehicleUE5Pawn::BeginPlay()
 	//DisableInput(GetLocalViewingPlayerController());
 }
 
+UVehicleBaseInfoWidget* AVehicleUE5Pawn::GetFloatingStatusBar()
+{
+	return PlayerInfoWidget;
+}
+
 void AVehicleUE5Pawn::OnResetVR()
 {
+
+}
+
+void AVehicleUE5Pawn::InitializeFloatingStatusBar()
+{
+	if (PlayerInfoWidget || !AbilitySystemComponent.IsValid())
+		return;
+	check(GetWorld())
+	AVehiclePlayerController* PC = Cast<AVehiclePlayerController>(UGameplayStatics::GetPlayerController(GetWorld(),0));
+
+	if (PC && PC->IsLocalPlayerController())
+	{
+		check(PlayerInfoWidgetClass)
+		{
+			PlayerInfoWidget = CreateWidget<UVehicleBaseInfoWidget>(PC,PlayerInfoWidgetClass);
+			if (PlayerInfoWidget && UIFloatingStatusBarComponent)
+			{
+				UIFloatingStatusBarComponent->SetWidget(PlayerInfoWidget);
+				PlayerInfoWidget->SetHealthBar(GetHealth() / GetMaxHealth());
+				PlayerInfoWidget->SetNitroManaBar(GetMana() / GetMaxMana());
+				UE_LOG(LogTemp, Warning, TEXT("Vehicle UI Setup Done on Server. "));
+			}
+		}
+		
+	}
+}
+
+void AVehicleUE5Pawn::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
+void AVehicleUE5Pawn::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+}
+
+void AVehicleUE5Pawn::BindASCInput()
+{
+	if (!ASCInputBound && AbilitySystemComponent.IsValid() && IsValid(InputComponent))
+	{
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"), FString("CancelTarget"), FString("EVehiclePowerAbilityID"), static_cast<int32>(EVehiclePowerAbilityID::Confirm), static_cast<int32>(EVehiclePowerAbilityID::Cancel)));
+		ASCInputBound = true;
+	}
+}
+
+void AVehicleUE5Pawn::RemoveCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || !AbilitySystemComponent->CharacterAbilitiesGiven)
+		return;
+
+
+	// Remove any abilities added from a previous call. This checks to make sure the ability is in the startup 'CharacterAbilities' array.
+	TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if ((Spec.SourceObject == this) && DefaultVehicleAbilities.Contains(Spec.Ability->GetClass()))
+		{
+			AbilitiesToRemove.Add(Spec.Handle);
+		}
+	}
+
+	// Do in two passes so the removal happens after we have the full list
+	for (int32 i = 0; i < AbilitiesToRemove.Num(); i++)
+	{
+		AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
+	}
+
+	AbilitySystemComponent->CharacterAbilitiesGiven = false;
+}
+
+void AVehicleUE5Pawn::AddCharacterAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->CharacterAbilitiesGiven)
+		return;
+
+	for (TSubclassOf<UVehicleGameplayAbility>& StartupAbility : DefaultVehicleAbilities)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, GetAbilityLevel(StartupAbility.GetDefaultObject()->AbilityPowerID),
+			static_cast<int32>(StartupAbility.GetDefaultObject()->AbilityPowerInputID), this));
+	}
+
+	AbilitySystemComponent->CharacterAbilitiesGiven = true;
+
+}
+
+void AVehicleUE5Pawn::AddStartupEffects()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid() || AbilitySystemComponent->StartupEffectsApplied)
+		return;
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	for (TSubclassOf<UGameplayEffect> GameplayEffect : StartupEffects)
+	{
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetVehicleLevel(), EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+		}
+	}
+
+	AbilitySystemComponent->StartupEffectsApplied = true;
+}
+
+void AVehicleUE5Pawn::InitializeAttributes()
+{
+	if (!AbilitySystemComponent.IsValid())
+		return;
+
+	if (!DefaultVehicleEffects)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Missing Default Vehicle Attributes for %s  "), *FString(__FUNCTION__));
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultVehicleEffects, GetVehicleLevel(), EffectContext);
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+	}
+
+}
+
+void AVehicleUE5Pawn::SetHealth(float Health)
+{
+	if (AttributesSetBase.IsValid())
+	{
+		AttributesSetBase->SetHealth(Health);
+	}
+}
+
+void AVehicleUE5Pawn::SetNitroMana(float nitro)
+{
+	if (AttributesSetBase.IsValid())
+	{
+		AttributesSetBase->SetNitroMana(nitro);
+	}
+}
+
+
+
+void AVehicleUE5Pawn::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	TArray<AActor*> PlayerStartList;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStartList);
+
+	int32 randomIndex = FMath::RandRange(0, PlayerStartList.Num() - 1);
+	AActor* FindRandomPlayerStartActor = PlayerStartList[randomIndex];
+
+	this->SetActorLocation(FindRandomPlayerStartActor->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+
+
+
+
+	AVehiclePlayerState* PS = Cast<AVehiclePlayerState>(GetPlayerState());
+	check(PS)
+			
+	if (PS)
+	{
+		AbilitySystemComponent = Cast<UVehicleAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+
+		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, this);
+
+		AttributesSetBase = PS->GetAttributeSetBase();
+
+		
+
+		AbilitySystemComponent->SetTagMapCount(DeadTag, 0);
+
+		BindASCInput();
+
+		SetHealth(GetMaxHealth());
+		SetNitroMana(GetMaxMana());
+
+		AddStartupEffects();
+		AddCharacterAbilities();
+
+		InitializeAttributes();
+		InitializeFloatingStatusBar();
+	}
+
 }
 
 void AVehicleUE5Pawn::UpdateHUDStrings()
@@ -431,10 +643,66 @@ void AVehicleUE5Pawn::UpdatePhysicsMaterial()
 
 UAbilitySystemComponent* AVehicleUE5Pawn::GetAbilitySystemComponent() const
 {
-	return VehicleAbilitySystemComponent;
+	return AbilitySystemComponent.Get();
 }
 
+void AVehicleUE5Pawn::VehicleDie()
+{
+	RemoveCharacterAbilities();
 
+	GetVehicleMovementComponent()->StopMovementImmediately();
+	
+	if (AbilitySystemComponent.IsValid())
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+
+		FGameplayTagContainer EffectsTagsRemove;
+		EffectsTagsRemove.AddTag(EffectRemoveOnDeathTag);
+		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectsTagsRemove);
+		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+		Destroy();
+	}
+}
+
+float AVehicleUE5Pawn::GetHealth() const
+{
+	if (AttributesSetBase.IsValid())
+	{
+		return AttributesSetBase->GetHealth();
+	}
+
+	return 0;
+}
+
+float AVehicleUE5Pawn::GetMaxHealth() const
+{
+	if (AttributesSetBase.IsValid())
+	{
+		return AttributesSetBase->GetMaxHealth();
+	}
+
+	return 0;
+}
+
+float AVehicleUE5Pawn::GetMana() const
+{
+	if (AttributesSetBase.IsValid())
+	{
+		return AttributesSetBase->GetNitroMana();
+	}
+
+	return 0;
+}
+
+float AVehicleUE5Pawn::GetMaxMana() const
+{
+	if (AttributesSetBase.IsValid())
+	{
+		return AttributesSetBase->GetNitroMaxMana();
+	}
+
+	return 0;
+}
 #undef LOCTEXT_NAMESPACE
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
