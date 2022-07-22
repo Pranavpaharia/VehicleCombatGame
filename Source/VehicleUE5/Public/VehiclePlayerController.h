@@ -58,10 +58,28 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bCameraMove;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FString sessionStringID;
+
 	UFUNCTION(BlueprintCallable)
 	void RotateCarCamera(const FVector2D pos);
 
+	UFUNCTION(BlueprintCallable)
+	void TravelToServer(FString sURL);
+
+	UFUNCTION(BlueprintCallable,Server,Reliable,WithValidation)
+	void ResetPosition();
+
+	virtual void OnUnPossess() override;
+
+	virtual void OnPossess(APawn* aPawn) override;
+
+	UFUNCTION(BlueprintCallable)
+	AVehiclePlayerState* GetVehiclePlayerState() { return VehiclePlayerState; }
 
 	
 
+private:
+	UPROPERTY()
+	AVehiclePlayerState* VehiclePlayerState;
 };

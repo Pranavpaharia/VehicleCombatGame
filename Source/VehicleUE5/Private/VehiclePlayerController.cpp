@@ -5,6 +5,9 @@
 #include "OnlineSubsystemUtils.h"
 #include "VehicleUE5GameMode.h"
 #include "VehicleUE5Pawn.h"
+#include "VehicleGameSession.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
 #include "VehicleUE5GameInstance.h"
 
 
@@ -44,7 +47,14 @@ void AVehiclePlayerController::BeginPlay()
 		if (gInstance)
 		{
 			SetPlayerInfo(gInstance->PlayerName);
+			FString sessionString;
+			gInstance->GetCurrentSessionID_AsString(this, sessionString);
+			UE_LOG(LogTemp, Warning, TEXT("Session id is:  %s"), *sessionString);
+			
 		}
+
+		//Get Session ID
+
 
 	}
 
@@ -71,7 +81,9 @@ void AVehiclePlayerController::OnRep_PlayerState()
 
 	check(PlayerState)
 
-	OnNewPlayerStateReceived.Broadcast(Cast<AVehiclePlayerState>(PlayerState));
+	VehiclePlayerState = Cast<AVehiclePlayerState>(PlayerState);
+
+	OnNewPlayerStateReceived.Broadcast(VehiclePlayerState);
 }
 
 void AVehiclePlayerController::SetPlayerInfo_Implementation(const FString& CandidateName)
@@ -153,4 +165,53 @@ void AVehiclePlayerController::StartOfflineGame()
 	check(VehiclePawn)
 
 	VehiclePawn->StopWelcomeScreenCameraRotation();
+}
+
+void AVehiclePlayerController::TravelToServer(FString sURL)
+{
+	ClientTravel(sURL, ETravelType::TRAVEL_Absolute, false);
+}
+
+void AVehiclePlayerController::ResetPosition_Implementation()
+{
+	AVehicleUE5GameMode* gm = Cast<AVehicleUE5GameMode>(GetWorld()->GetAuthGameMode());
+	if (gm)
+	{
+		FActorSpawnParameters params;
+		
+		GetPawn()->Destroy(false, true);
+		OnUnPossess();
+
+		
+		TArray<AActor*> PlayerStartList;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStartList);
+
+		int32 randomIndex = FMath::RandRange(0, PlayerStartList.Num() - 1);
+		AActor* FindRandomPlayerStartActor = PlayerStartList[randomIndex];
+
+		//carPawn->SetActorLocation(FindRandomPlayerStartActor->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+
+		AVehicleUE5Pawn* carPawn = GetWorld()->SpawnActor<AVehicleUE5Pawn>(AVehicleUE5Pawn::StaticClass(), FindRandomPlayerStartActor->GetActorLocation(), FindRandomPlayerStartActor->GetActorRotation(), params);
+		OnPossess(carPawn);
+		
+
+		//this->GetPawn()->DispatchRestart(true);
+		
+		//GetPawn()->SetActorLocationAndRotation(playerStart->GetActorLocation(),playerStart->GetActorRotation(), false, nullptr, ETeleportType::TeleportPhysics);
+	}
+}
+
+bool AVehiclePlayerController::ResetPosition_Validate()
+{
+	return GetLocalRole() == ENetRole::ROLE_Authority;
+}
+
+void AVehiclePlayerController::OnUnPossess()
+{
+	Super::OnUnPossess();
+}
+
+void AVehiclePlayerController::OnPossess(APawn* aPawn)
+{
+	Super::OnPossess(aPawn);
 }
