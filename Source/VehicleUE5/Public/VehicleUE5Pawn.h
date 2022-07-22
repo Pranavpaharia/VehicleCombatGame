@@ -64,7 +64,7 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn ,public IAbilitySystemInterfa
 
 	TWeakObjectPtr <UVehicleAttributeSet> AttributesSetBase;
 
-	//void StartGame();
+	virtual void UnPossessed() override;
 
 public:
 	AVehicleUE5Pawn();
@@ -209,6 +209,8 @@ public:
 	void MoveCamera(const FInputActionValue& stickPos);
 
 	void StopWelcomeScreenCameraRotation();
+
+	void SetForReSettingPosition();
 
 	virtual void PossessedBy(AController* NewController) override;
 

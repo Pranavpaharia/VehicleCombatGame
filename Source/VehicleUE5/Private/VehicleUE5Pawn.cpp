@@ -267,7 +267,7 @@ void AVehicleUE5Pawn::MoveOnJoyStick(const FInputActionValue& stickPos)
 	GetVehicleMovementComponent()->SetSteeringInput(JoystickPosition.X);
 
 
-	UE_LOG(LogTemp, Warning, TEXT("Joystick Magnitude: %d"), JoystickPosition.Length());
+	//UE_LOG(LogTemp, Warning, TEXT("Joystick Magnitude: %d"), JoystickPosition.Length());
 }
 
 void AVehicleUE5Pawn::StopWelcomeScreenCameraRotation()
@@ -405,7 +405,7 @@ void AVehicleUE5Pawn::InitializeFloatingStatusBar()
 
 	if (PC && PC->IsLocalPlayerController())
 	{
-		check(PlayerInfoWidgetClass)
+		if(PlayerInfoWidgetClass)
 		{
 			PlayerInfoWidget = CreateWidget<UVehicleBaseInfoWidget>(PC,PlayerInfoWidgetClass);
 			if (PlayerInfoWidget && UIFloatingStatusBarComponent)
@@ -428,6 +428,30 @@ void AVehicleUE5Pawn::PostInitializeComponents()
 void AVehicleUE5Pawn::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+
+	AVehiclePlayerState* PS = GetPlayerState<AVehiclePlayerState>();
+	if (PS)
+	{
+		AbilitySystemComponent = Cast<UVehicleAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+
+		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+
+		BindASCInput();
+
+		AttributesSetBase = PS->GetAttributeSetBase();
+
+		InitializeAttributes();
+
+
+		InitializeFloatingStatusBar();
+
+
+		AbilitySystemComponent->SetTagMapCount(DeadTag, 0);
+
+		SetHealth(GetMaxHealth());
+		SetNitroMana(GetMaxMana());
+
+	}
 }
 
 void AVehicleUE5Pawn::BindASCInput()
@@ -537,6 +561,12 @@ void AVehicleUE5Pawn::SetNitroMana(float nitro)
 	}
 }
 
+void AVehicleUE5Pawn::UnPossessed()
+{
+	Super::UnPossessed();
+
+	Destroy(true, true);
+}
 
 
 void AVehicleUE5Pawn::PossessedBy(AController* NewController)
@@ -662,6 +692,11 @@ void AVehicleUE5Pawn::VehicleDie()
 		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
 		Destroy();
 	}
+}
+
+void AVehicleUE5Pawn::SetForReSettingPosition()
+{
+	GetVehicleMovementComponent()->SetParked(true);
 }
 
 float AVehicleUE5Pawn::GetHealth() const
