@@ -15,8 +15,12 @@ class VEHICLEUE5_API UVehicleBaseInfoWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetHealthBar(float HealthPercentage);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetNitroManaBar(float NitroPercentage);
+
 	
+
 };
