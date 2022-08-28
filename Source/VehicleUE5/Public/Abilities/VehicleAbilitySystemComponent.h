@@ -26,7 +26,7 @@ public:
 
 	static UVehicleAbilitySystemComponent* GetAbilitySystemComponentFromActor(const AActor* Actor, bool LookForComponent = false);
 
-	void ReceiveDamage(UVehicleAbilitySystemComponent* SourceARC, float UnmitigatedDamage, float MitigatedDamage);
+	virtual void ReceiveDamage(UVehicleAbilitySystemComponent* SourceARC, float UnmitigatedDamage, float MitigatedDamage);
 
 	FReceiveDamageDelegate OnReceiveDamage;
 };

@@ -77,6 +77,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AVehiclePlayerState* GetVehiclePlayerState() { return VehiclePlayerState; }
 
+	UFUNCTION(Client,Reliable,WithValidation)
+	void ShowDamageNumber(float DamageAmount, AVehicleUE5Pawn* TargetCharacter);
+	
 	
 
 private:

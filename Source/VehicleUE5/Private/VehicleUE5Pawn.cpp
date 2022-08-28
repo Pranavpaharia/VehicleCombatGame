@@ -39,6 +39,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	//Setup Tags
 	DeadTag = FGameplayTag::RequestGameplayTag(FName("State.Dead"));
 	EffectRemoveOnDeathTag = FGameplayTag::RequestGameplayTag(FName("Effect.RemoveOnDeath"));
+	PlayerImmunityTag = FGameplayTag::RequestGameplayTag(FName("Effect.Immunity"));
 
 	// Car mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/Game/Vehicles/Vehicle/Vehicle_SkelMesh.Vehicle_SkelMesh"));
@@ -123,6 +124,10 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	RotatingAnchorSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RotatingSceneComponent"));
 	RotatingAnchorSceneComponent->SetupAttachment(RootComponent);
 
+
+	PawnCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("PawnCollisionComponent"));
+	PawnCollisionComponent->SetupAttachment(RootComponent);
+	
 	// Create a spring arm component for our chase camera
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 34.0f));
@@ -172,7 +177,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	//Setup Widget Component
 	UIFloatingStatusBarComponent = CreateDefaultSubobject<UWidgetComponent>(FName("FloatingWidgetComponent"));
 	UIFloatingStatusBarComponent->SetupAttachment(GetMesh());
-	UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0,0,100));
+	UIFloatingStatusBarComponent->SetRelativeLocation(FVector(0,40,20));
 	UIFloatingStatusBarComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	UIFloatingStatusBarComponent->SetDrawSize(FVector2D(500, 500));
 	UIFloatingStatusBarComponent->SetWidget(PlayerInfoWidget);
@@ -229,7 +234,9 @@ void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	check(EnhancedPlayerInputComponent)
 
 	EnhancedPlayerInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveOnJoyStick);
-	EnhancedPlayerInputComponent->BindAction(IA_MoveCamera, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveCamera);
+	//EnhancedPlayerInputComponent->BindAction(IA_MoveCamera, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveCamera);
+
+	BindASCInput();
 
 }
 
@@ -460,6 +467,7 @@ void AVehicleUE5Pawn::BindASCInput()
 	{
 		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, FGameplayAbilityInputBinds(FString("ConfirmTarget"), FString("CancelTarget"), FString("EVehiclePowerAbilityID"), static_cast<int32>(EVehiclePowerAbilityID::Confirm), static_cast<int32>(EVehiclePowerAbilityID::Cancel)));
 		ASCInputBound = true;
+		UE_LOG(LogTemp, Warning, TEXT("BindASC to Input %s  "), *FString(__FUNCTION__));
 	}
 }
 
@@ -681,6 +689,8 @@ void AVehicleUE5Pawn::VehicleDie()
 	RemoveCharacterAbilities();
 
 	GetVehicleMovementComponent()->StopMovementImmediately();
+	GetVehicleMovementComponent()->SetBrakeInput(1.0f);
+
 	
 	if (AbilitySystemComponent.IsValid())
 	{
@@ -690,8 +700,68 @@ void AVehicleUE5Pawn::VehicleDie()
 		EffectsTagsRemove.AddTag(EffectRemoveOnDeathTag);
 		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectsTagsRemove);
 		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
-		Destroy();
+		GetWorldTimerManager().SetTimer(TimeHandle_Pawn, this, &AVehicleUE5Pawn::DestroyPawnTimely, DelayInDeathTime);
+		
 	}
+
+	
+	
+}
+
+void AVehicleUE5Pawn::DestroyPawnTimely()
+{
+	GetMesh()->SetVisibility(false);
+	GetMesh()->SetSimulatePhysics(false);
+	if (GetFloatingStatusBar() != nullptr)
+		GetFloatingStatusBar()->SetVisibility(ESlateVisibility::Hidden);
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetWorldTimerManager().ClearTimer(TimeHandle_Pawn);
+	GetWorldTimerManager().SetTimer(TimeHandle_Pawn, this, &AVehicleUE5Pawn::RestartPawnAfterDeath, 2	);
+
+}
+
+void AVehicleUE5Pawn::RestartPawnAfterDeath()
+{
+	 AVehiclePlayerController* pc = Cast<AVehiclePlayerController>(GetController());
+	 if (pc != nullptr)
+	 {
+		 if(pc->IsLocalPlayerController())
+		 pc->ResetPosition();
+	 }
+
+	 GetWorldTimerManager().ClearTimer(TimeHandle_Pawn);
+}
+
+void AVehicleUE5Pawn::VehicleAttackLaser()
+{
+	if (GetAbilitySystemComponent() != nullptr)
+	{
+		FGameplayAbilitySpec* FireAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[0]);
+
+		GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[0], true);
+
+
+	}
+	
+}
+
+void AVehicleUE5Pawn::VehicleGetImmunity()
+{
+
+	if (GetAbilitySystemComponent() != nullptr)
+	{		
+		GetAbilitySystemComponent()->AddMinimalReplicationGameplayTag(PlayerImmunityTag);
+		UE_LOG(LogTemp, Warning, TEXT("Adding Player Immunity Tags "));
+		//FActiveGameplayEffect* activeEffect = nullptr;
+		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffectDelegate.Broadcast()
+		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffect(ImmunityAbilitySpec, activeEffect);
+	}
+}
+
+void AVehicleUE5Pawn::VehicleImmunityActivated()
+{
+
 }
 
 void AVehicleUE5Pawn::SetForReSettingPosition()
@@ -738,6 +808,13 @@ float AVehicleUE5Pawn::GetMaxMana() const
 
 	return 0;
 }
+
+
+bool AVehicleUE5Pawn::IsAlive() const
+{
+	return GetHealth() > 0.0f;
+}
+
 #undef LOCTEXT_NAMESPACE
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

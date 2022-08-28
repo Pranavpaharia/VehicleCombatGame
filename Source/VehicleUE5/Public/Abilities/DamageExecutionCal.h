@@ -13,5 +13,9 @@ UCLASS()
 class VEHICLEUE5_API UDamageExecutionCal : public UGameplayEffectExecutionCalculation
 {
 	GENERATED_BODY()
+
+	UDamageExecutionCal();
+
+	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, OUT FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 	
 };

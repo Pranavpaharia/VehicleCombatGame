@@ -220,3 +220,16 @@ void AVehiclePlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 }
+
+void AVehiclePlayerController::ShowDamageNumber_Implementation(float DamageAmount, AVehicleUE5Pawn* TargetCharacter)
+{
+	if (TargetCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Damage Received : %f with Candidate: %s"), DamageAmount, *GetVehiclePlayerState()->GetCandidateName());
+	}
+}
+
+bool AVehiclePlayerController::ShowDamageNumber_Validate(float DamageAmount, AVehicleUE5Pawn* TargetCharacter)
+{
+	return true;
+}

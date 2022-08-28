@@ -12,6 +12,7 @@
 #include "Abilities/VehicleAttributeSet.h"
 #include "Widgets/VehicleBaseInfoWidget.h"
 #include "Components/WidgetComponent.h"
+#include "Components/BoxComponent.h"
 #include "VehicleUE5/VehicleUE5.h"
 #include "VehicleUE5Pawn.generated.h"
 
@@ -21,6 +22,7 @@ class USpringArmComponent;
 class UTextRenderComponent;
 class UInputComponent;
 class UAudioComponent;
+
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
@@ -60,6 +62,9 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn ,public IAbilitySystemInterfa
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RotatingAnchorSceneComponent;
 
+	UPROPERTY(Category = Display, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* PawnCollisionComponent;
+
 	TWeakObjectPtr <UVehicleAbilitySystemComponent> AbilitySystemComponent;
 
 	TWeakObjectPtr <UVehicleAttributeSet> AttributesSetBase;
@@ -95,6 +100,10 @@ public:
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly)
 	bool bInReverseGear;
 
+
+
+	FTimerHandle TimeHandle_Pawn;
+
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
 	UWidgetComponent* UIFloatingStatusBarComponent;
 
@@ -107,6 +116,13 @@ public:
 	UVehicleBaseInfoWidget* GetFloatingStatusBar();
 
 	void VehicleDie();
+
+	void DestroyPawnTimely();
+
+	void RestartPawnAfterDeath();
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	float DelayInDeathTime;
 
 	/** Initial offset of incar camera */
 	FVector InternalCameraOrigin;
@@ -135,9 +151,13 @@ public:
 
 	FGameplayTag DeadTag;
 	FGameplayTag EffectRemoveOnDeathTag;
+	FGameplayTag PlayerImmunityTag;
 
 	UFUNCTION()
 	void InitializeFloatingStatusBar();
+
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	bool IsAlive() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -159,6 +179,8 @@ protected:
 	void SetNitroMana(float nitro);
 
 	void RemoveCharacterAbilities();
+
+	
 
 	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
 
@@ -230,6 +252,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 		float GetMaxMana() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+	void VehicleAttackLaser();
+
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+	void VehicleGetImmunity();
+
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+	void VehicleImmunityActivated();
+
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
@@ -265,6 +296,7 @@ public:
 
 	FORCEINLINE USceneComponent* GetRotatingCameraComponent() const { return RotatingAnchorSceneComponent; }
 
+	FORCEINLINE USceneComponent* GetInternalCameraSceneComponent() const { return InternalCameraBase; }
 	
 };
 

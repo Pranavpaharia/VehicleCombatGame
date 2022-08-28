@@ -55,7 +55,7 @@ UVehicleAttributeSet* AVehiclePlayerState::GetAttributeSetBase() const
 
 bool AVehiclePlayerState::IsAlive() const
 {
-	return true;
+	return  GetHealth() > 0.0f;
 }
 
 void AVehiclePlayerState::ShowAbilityConfirmCancelText(bool ShowText)
@@ -216,6 +216,7 @@ void AVehiclePlayerState::OnHealthChanged(const FOnAttributeChangeData& Data)
 	if (!IsAlive() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
 	{
 		//Get the Pawn and set dying animation 
+		if(VehiclePawn)
 		VehiclePawn->VehicleDie();
 	}
 }

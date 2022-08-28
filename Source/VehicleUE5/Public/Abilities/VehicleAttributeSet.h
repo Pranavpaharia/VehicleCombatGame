@@ -49,6 +49,10 @@ public:
 	FGameplayAttributeData NitroMaxMana;
 	ATTRIBUTE_ACCESSORS(UVehicleAttributeSet, NitroMaxMana)
 
+	UPROPERTY(BlueprintReadOnly, Category = "Damage" , ReplicatedUsing = OnRep_Damage)
+	FGameplayAttributeData Damage;
+	ATTRIBUTE_ACCESSORS(UVehicleAttributeSet, Damage)
+
 
 protected:
 	UFUNCTION()
@@ -62,6 +66,9 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_NitroMaxMana(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	virtual void OnRep_Damage(const FGameplayAttributeData& OldValue);
 
 
 

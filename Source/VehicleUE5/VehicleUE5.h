@@ -25,6 +25,19 @@ enum class EVehiclePowerAbilityID : uint8
 	None
 };
 
+UENUM(BlueprintType)
+enum class EVehicleAbilityActivationPolicy : uint8
+{
+	// Try to activate the ability when the input is triggered.
+	OnInputTriggered,
+
+	// Continually try to activate the ability while the input is active.
+	WhileInputActive,
+
+	// Try to activate the ability when an avatar is assigned.
+	OnSpawn
+};
+
 
 UENUM(BlueprintType)
 enum class ETypesOfVehicleID : uint8
@@ -39,4 +52,18 @@ enum class EPlayerConnectionType : uint8
 {
 	LocalConnection,
 	OnlineConnection
+};
+
+
+UENUM(BlueprintType)
+enum class EVechicleAbilityActivationPolicy : uint8
+{
+	// Try to activate the ability when the input is triggered.
+	OnInputTriggered,
+
+	// Continually try to activate the ability while the input is active.
+	WhileInputActive,
+
+	// Try to activate the ability when an avatar is assigned.
+	OnSpawn
 };

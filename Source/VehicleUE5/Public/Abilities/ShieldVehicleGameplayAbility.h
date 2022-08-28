@@ -13,5 +13,7 @@ UCLASS()
 class VEHICLEUE5_API UShieldVehicleGameplayAbility : public UVehicleGameplayAbility
 {
 	GENERATED_BODY()
+
+	
 	
 };
