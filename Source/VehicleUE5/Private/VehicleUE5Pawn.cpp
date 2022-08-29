@@ -189,6 +189,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	EngineSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSound"));
 	EngineSoundComponent->SetSound(SoundCue.Object);
 	EngineSoundComponent->SetupAttachment(GetMesh());
+	EngineSoundComponent->SetVolumeMultiplier(0.4f);
 
 	/*VehicleAbilitySystemComponent = CreateDefaultSubobject<UVehicleAbilitySystemComponent>(FName("VehicleAbilitySystemComponent"));
 	VehicleAbilitySystemComponent->SetIsReplicated(true);
@@ -750,9 +751,13 @@ void AVehicleUE5Pawn::VehicleGetImmunity()
 {
 
 	if (GetAbilitySystemComponent() != nullptr)
-	{		
-		GetAbilitySystemComponent()->AddMinimalReplicationGameplayTag(PlayerImmunityTag);
-		UE_LOG(LogTemp, Warning, TEXT("Adding Player Immunity Tags "));
+	{
+		FGameplayAbilitySpec* ImmunityAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[1]);
+
+		GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[1], true);
+
+		//GetAbilitySystemComponent()->AddMinimalReplicationGameplayTag(PlayerImmunityTag);
+		//UE_LOG(LogTemp, Warning, TEXT("Adding Player Immunity Tags "));
 		//FActiveGameplayEffect* activeEffect = nullptr;
 		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffectDelegate.Broadcast()
 		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffect(ImmunityAbilitySpec, activeEffect);
