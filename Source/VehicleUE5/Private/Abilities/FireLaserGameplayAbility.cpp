@@ -65,6 +65,11 @@ void UFireLaserGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle
 
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
+
+	else if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_SimulatedProxy && VehiclePawn)
+	{
+		VehiclePawn->PlayFireSound();
+	}
 }
 
 void UFireLaserGameplayAbility::OnCancelled(FGameplayTag EventTag, FGameplayEventData EventData)
