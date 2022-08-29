@@ -14,6 +14,15 @@ class VEHICLEUE5_API UShieldVehicleGameplayAbility : public UVehicleGameplayAbil
 {
 	GENERATED_BODY()
 
-	
+public:
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TSubclassOf<UGameplayEffect> ShieldGameplayEffect;
+
+
+	UShieldVehicleGameplayAbility();
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
 	
 };

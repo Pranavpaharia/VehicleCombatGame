@@ -3,3 +3,51 @@
 
 #include "Abilities/ShieldVehicleGameplayAbility.h"
 
+#include "VehicleUE5Pawn.h"
+
+UShieldVehicleGameplayAbility::UShieldVehicleGameplayAbility()
+{
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
+	FGameplayTag AbilityTag = FGameplayTag::RequestGameplayTag(FName("Ability.Skill.Immunity"));
+	AbilityTags.AddTag(AbilityTag);
+	ActivationOwnedTags.AddTag(AbilityTag);
+
+	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Skill")));
+}
+
+void UShieldVehicleGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	UE_LOG(LogTemp, Warning, TEXT("Try Activating Shield  Ability"));
+
+	AVehicleUE5Pawn* VehiclePawn = Cast<AVehicleUE5Pawn>(GetAvatarActorFromActorInfo());
+
+	if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority && VehiclePawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Calling On Server"));
+
+		const FGameplayEffectSpecHandle ImmunityEffectSpecHandle = MakeOutgoingGameplayEffectSpec(ShieldGameplayEffect, GetAbilityLevel());
+
+		FGameplayEffectContextHandle contextHandle = ImmunityEffectSpecHandle.Data->GetEffectContext();
+
+		FGameplayEffectSpec* Spec = ImmunityEffectSpecHandle.Data.Get();
+
+		if (!Spec)
+		{
+			VehiclePawn->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec);
+			UE_LOG(LogTemp, Warning, TEXT("Applied Immunity Effect on Server"));
+		}
+
+
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+
+}
