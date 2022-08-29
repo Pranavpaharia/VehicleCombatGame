@@ -261,6 +261,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability System")
 	void VehicleImmunityActivated();
 
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Sound")
+	void PlayFireSound();
+
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
