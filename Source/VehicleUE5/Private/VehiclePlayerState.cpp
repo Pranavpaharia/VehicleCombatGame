@@ -43,15 +43,15 @@ void AVehiclePlayerState::BeginPlay()
 	
 }
 
-UAbilitySystemComponent* AVehiclePlayerState::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
-}
-
-UVehicleAttributeSet* AVehiclePlayerState::GetAttributeSetBase() const
-{
-	return AttributeSetBase;
-}
+//UAbilitySystemComponent* AVehiclePlayerState::GetAbilitySystemComponent() const
+//{
+//	return AbilitySystemComponent;
+//}
+//
+//UVehicleAttributeSet* AVehiclePlayerState::GetAttributeSetBase() const
+//{
+//	return AttributeSetBase;
+//}
 
 bool AVehiclePlayerState::IsAlive() const
 {

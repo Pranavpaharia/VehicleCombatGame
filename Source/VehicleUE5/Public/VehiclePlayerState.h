@@ -96,9 +96,9 @@ public:
 		return CandidateName;
 	}
 
-	FORCEINLINE UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	FORCEINLINE UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; };
 
-	FORCEINLINE UVehicleAttributeSet* GetAttributeSetBase() const;
+	FORCEINLINE UVehicleAttributeSet* GetAttributeSetBase() const { return AttributeSetBase; };
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	bool IsAlive() const;
