@@ -80,9 +80,16 @@ public:
 	UFUNCTION(Client,Reliable,WithValidation)
 	void ShowDamageNumber(float DamageAmount, AVehicleUE5Pawn* TargetCharacter);
 	
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	USoundWave* UISoundClickAsset;
+
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void PlayUIClickSound();
 
 private:
 	UPROPERTY()
 	AVehiclePlayerState* VehiclePlayerState;
+
+	
+
 };
