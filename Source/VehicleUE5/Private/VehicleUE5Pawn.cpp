@@ -215,12 +215,12 @@ void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("MoveForward", this, &AVehicleUE5Pawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVehicleUE5Pawn::MoveRight);
 	//PlayerInputComponent->BindAxis(LookUpBinding, this, &AVehicleUE5Pawn::LookUpCamera);
-	PlayerInputComponent->BindAxis(LookRightBinding);
+	//PlayerInputComponent->BindAxis(LookRightBinding);
 
 	//PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &AVehicleUE5Pawn::OnHandbrakePressed);
 	//PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &AVehicleUE5Pawn::OnHandbrakeReleased);
 	//PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AVehicleUE5Pawn::OnToggleCamera);
-
+	//PlayerInputComponent->BindAction("FireBullets", IE_Pressed, this, &AVehicleUE5Pawn::VehicleAttackLaser);
 	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AVehicleUE5Pawn::OnResetVR); 
 
 	const APlayerController* PC = GetController<APlayerController>();
@@ -236,6 +236,7 @@ void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	EnhancedPlayerInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveOnJoyStick);
 	//EnhancedPlayerInputComponent->BindAction(IA_MoveCamera, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveCamera);
+	EnhancedPlayerInputComponent->BindAction(IA_FireMainWeapon, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::VehicleAttackLaser);
 
 	BindASCInput();
 
@@ -701,6 +702,11 @@ void AVehicleUE5Pawn::VehicleDie()
 		EffectsTagsRemove.AddTag(EffectRemoveOnDeathTag);
 		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectsTagsRemove);
 		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+		
+		if (GetFloatingStatusBar() != nullptr)
+			GetFloatingStatusBar()->SetVisibility(ESlateVisibility::Hidden);
+		PawnCollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
 		GetWorldTimerManager().SetTimer(TimeHandle_Pawn, this, &AVehicleUE5Pawn::DestroyPawnTimely, DelayInDeathTime);
 		
 	}
