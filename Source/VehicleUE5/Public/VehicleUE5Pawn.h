@@ -139,6 +139,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Inputs)
 	UInputAction* IA_MoveCamera;
 
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_FireMainWeapon;
+
 
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
