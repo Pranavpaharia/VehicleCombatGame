@@ -142,6 +142,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Inputs)
 	UInputAction* IA_FireMainWeapon;
 
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_Shield;
+
 
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -195,10 +198,15 @@ protected:
 	TArray<TSubclassOf<UVehicleGameplayAbility>> DefaultVehicleAbilities;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> TestAbilities;
+
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TSubclassOf<UGameplayEffect> DefaultVehicleEffects;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
+
 
 public:
 	// End Actor interface
