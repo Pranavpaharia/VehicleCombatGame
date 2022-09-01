@@ -165,6 +165,9 @@ public:
 	UFUNCTION(BlueprintCallable,BlueprintPure)
 	bool IsAlive() const;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReArrangeVehcilePhysicsWheels(UChaosVehicleMovementComponent* PawnVehicleMovementComponent);
+
 protected:
 	virtual void BeginPlay() override;
 
