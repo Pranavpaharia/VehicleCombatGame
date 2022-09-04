@@ -13,7 +13,9 @@
 #include "Widgets/VehicleBaseInfoWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Components/BoxComponent.h"
+#include "VehicleAnimationInstance.h"
 #include "VehicleUE5/VehicleUE5.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -145,6 +147,31 @@ public:
 	UPROPERTY(EditAnywhere, Category = Inputs)
 	UInputAction* IA_Shield;
 
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_ChangeVehicle;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_HandBrake;
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere, Category = Inputs)
+	TSubclassOf<USkeletalMesh>ListCars;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = Inputs)
+	TArray<TSoftObjectPtr<USkeletalMesh>> BaseMeshList;
+	//TArray<TSoftObjectPtr<USkeletalMesh>>
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = Inputs)
+	TArray<USkeletalMesh*> SkeletalMeshList;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	TArray<TSubclassOf<UVehicleAnimationInstance>>AninBPCarList;
+
+	void AssetSkeletalMeshLoaded();
+
+	void OnButtonPressed();
+
+	void OnButtonReleased();
+
+	
 
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -190,6 +217,8 @@ protected:
 	void RemoveCharacterAbilities();
 
 	
+
+	int32 currentSkeletelMeshIndex = 0;
 
 	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
 
@@ -278,6 +307,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Sound")
 	void PlayFireSound();
 
+	void ChangeSkeletalMeshAndAnimBlueprint();
+
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
@@ -296,6 +327,9 @@ private:
 	/** Non Slippery Material instance */
 	UPhysicalMaterial* NonSlipperyMaterial;
 
+	void SetLazyLoadMesh();
+
+	
 
 public:
 	/** Returns SpringArm subobject **/

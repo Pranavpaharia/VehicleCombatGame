@@ -20,6 +20,8 @@ enum class EVehiclePowerAbilityID : uint8
 	Mines,
 	Shield,
 	NitroBoost,
+	ChangeVehicle,
+	HandBrake,
 	Confirm,
 	Cancel,
 	None
