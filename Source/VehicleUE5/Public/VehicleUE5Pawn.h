@@ -216,9 +216,9 @@ protected:
 
 	void RemoveCharacterAbilities();
 
-	
+	void FireAbilityChangeVehicle();
 
-	int32 currentSkeletelMeshIndex = 0;
+	
 
 	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
 
@@ -239,6 +239,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 
 public:
 	// End Actor interface
@@ -307,8 +309,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Sound")
 	void PlayFireSound();
 
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
 	void ChangeSkeletalMeshAndAnimBlueprint();
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Replicated, ReplicatedUsing = OnRep_CurrentSkeletelMeshIndex, Category = "Abilities")
+	uint8 currentSkeletelMeshIndex = 0;
+
+	UFUNCTION()
+	void OnRep_CurrentSkeletelMeshIndex();
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void IncreamentSkeletalMeshIndex();
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
