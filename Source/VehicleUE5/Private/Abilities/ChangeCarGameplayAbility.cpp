@@ -25,14 +25,14 @@ void UChangeCarGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle
 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UE_LOG(LogTemp, Warning, TEXT("Try Activating Shield  Ability"));
+	UE_LOG(LogTemp, Warning, TEXT("Try Activating ChangeCar Ability"));
 
 	AVehicleUE5Pawn* VehiclePawn = Cast<AVehicleUE5Pawn>(GetAvatarActorFromActorInfo());
 
 	if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority && VehiclePawn)
 	{
-		VehiclePawn->ChangeSkeletalMeshAndAnimBlueprint();
-
+		VehiclePawn->IncreamentSkeletalMeshIndex();
+		UE_LOG(LogTemp, Warning, TEXT("On Server Running ChangeCar Ability"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 }
