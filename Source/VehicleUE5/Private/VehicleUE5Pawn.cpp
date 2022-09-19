@@ -132,7 +132,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	// Physics settings
 	// Adjust the center of mass - the buggy is quite low
 	UPrimitiveComponent* UpdatedPrimitive = Cast<UPrimitiveComponent>(VehicleMovement->UpdatedComponent);
-	UpdatedPrimitive->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	UpdatedPrimitive->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	if (UpdatedPrimitive)
 	{
 		UpdatedPrimitive->BodyInstance.COMNudge = FVector(8.0f, 0.0f, -15.0f);
