@@ -36,7 +36,7 @@ void AVehiclePlayerState::BeginPlay()
 		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetNitroManaAttribute()).AddUObject(this, &AVehiclePlayerState::OnManaChanged);
 		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetMaxHealthAttribute()).AddUObject(this, &AVehiclePlayerState::OnMaxHealthChanged);
 		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetNitroManaAttribute()).AddUObject(this, &AVehiclePlayerState::OnMaxManaChanged);
-
+		
 		AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("State.DamageHit")), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AVehiclePlayerState::OnVehicleDamageHit);
 	}
 	
@@ -123,6 +123,11 @@ void AVehiclePlayerState::SetColorId(uint8 colorIndex)
 	ColorId = colorIndex;
 }
 
+void AVehiclePlayerState::IncreamentPlayerScore()
+{
+	PlayerScore++;
+}
+
 void AVehiclePlayerState::OnRep_ColorId()
 {
 	UE_LOG(LogTemp, Warning, TEXT("On Rep_ColorId is: %d"), ColorId);
@@ -137,6 +142,12 @@ void AVehiclePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AVehiclePlayerState, CandidateName);
 	DOREPLIFETIME(AVehiclePlayerState, TextChat);
 	DOREPLIFETIME(AVehiclePlayerState, sessionStringID);
+	DOREPLIFETIME(AVehiclePlayerState, PlayerScore);
+
+}
+
+void AVehiclePlayerState::OnRep_PlayerScore()
+{
 
 }
 
