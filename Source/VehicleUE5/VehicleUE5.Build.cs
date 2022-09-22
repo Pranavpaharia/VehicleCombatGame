@@ -36,7 +36,9 @@ public class VehicleUE5 : ModuleRules
                     "UMG",
                     "AudioMixer",
                     "AudioModulation",
-                    "EnhancedInput"
+                    "EnhancedInput",
+                    "Slate" ,
+                    "SlateCore"
                 }
             );
 

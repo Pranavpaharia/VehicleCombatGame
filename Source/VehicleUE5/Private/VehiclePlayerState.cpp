@@ -36,7 +36,7 @@ void AVehiclePlayerState::BeginPlay()
 		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetNitroManaAttribute()).AddUObject(this, &AVehiclePlayerState::OnManaChanged);
 		MaxHealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetMaxHealthAttribute()).AddUObject(this, &AVehiclePlayerState::OnMaxHealthChanged);
 		ManaChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSetBase->GetNitroManaAttribute()).AddUObject(this, &AVehiclePlayerState::OnMaxManaChanged);
-
+		
 		AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("State.DamageHit")), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AVehiclePlayerState::OnVehicleDamageHit);
 	}
 	
@@ -123,6 +123,11 @@ void AVehiclePlayerState::SetColorId(uint8 colorIndex)
 	ColorId = colorIndex;
 }
 
+void AVehiclePlayerState::IncreamentPlayerScore()
+{
+	PlayerScore++;
+}
+
 void AVehiclePlayerState::OnRep_ColorId()
 {
 	UE_LOG(LogTemp, Warning, TEXT("On Rep_ColorId is: %d"), ColorId);
@@ -137,6 +142,12 @@ void AVehiclePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AVehiclePlayerState, CandidateName);
 	DOREPLIFETIME(AVehiclePlayerState, TextChat);
 	DOREPLIFETIME(AVehiclePlayerState, sessionStringID);
+	DOREPLIFETIME(AVehiclePlayerState, PlayerScore);
+
+}
+
+void AVehiclePlayerState::OnRep_PlayerScore()
+{
 
 }
 
@@ -209,7 +220,7 @@ void AVehiclePlayerState::OnHealthChanged(const FOnAttributeChangeData& Data)
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("On Player State: On Health Changed to %f"), Health);
+	//UE_LOG(LogTemp, Warning, TEXT("On Player State: On Health Changed to %f"), Health);
 
 	//If the player dies, handle health
 
@@ -224,7 +235,7 @@ void AVehiclePlayerState::OnHealthChanged(const FOnAttributeChangeData& Data)
 void AVehiclePlayerState::OnMaxHealthChanged(const FOnAttributeChangeData& Data)
 {
 	float MaxHealth = Data.NewValue;
-	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnMaxHealthChanged to %f"), MaxHealth);
+//	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnMaxHealthChanged to %f"), MaxHealth);
 	//Update Pawn Character HUD 
 
 	AVehicleUE5Pawn* VehiclePawn = Cast<AVehicleUE5Pawn>(GetPawn());
@@ -245,7 +256,7 @@ void AVehiclePlayerState::OnManaChanged(const FOnAttributeChangeData& Data)
 {
 	float Mana = Data.NewValue;
 
-	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnManaChanged to %f"), Mana);
+//	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnManaChanged to %f"), Mana);
 	
 	//Update Mana on vehicle pawn and UI widgets
 	AVehicleUE5Pawn* VehiclePawn = Cast<AVehicleUE5Pawn>(GetPawn());
@@ -265,7 +276,7 @@ void AVehiclePlayerState::OnMaxManaChanged(const FOnAttributeChangeData& Data)
 {
 	float MaxMana = Data.NewValue;
 
-	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnMaxManaChanged to %f"), MaxMana);
+//	UE_LOG(LogTemp, Warning, TEXT("On Player State: OnMaxManaChanged to %f"), MaxMana);
 
 	//Update Pawn Character HUD 
 

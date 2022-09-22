@@ -23,6 +23,8 @@
 #include "Abilities/VehicleGameplayAbility.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerStart.h"
+#include "Engine/StreamableManager.h"
+#include "VehicleAssetManager.h"
 #include "VehiclePlayerState.h"
 
 
@@ -45,6 +47,23 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/Game/Vehicles/Vehicle/Vehicle_SkelMesh.Vehicle_SkelMesh"));
 	GetMesh()->SetSkeletalMesh(CarMesh.Object);
 	GetMesh()->SetSimulatePhysics(true);
+
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh1(TEXT("SkeletalMesh'/Game/ARCADE_Ultimate_Vehicles_Pack/Vehicles/Land/Racing/B_Class/Pluton.Pluton'"));
+	//if(CarMesh1.Succeeded())
+	SkeletalMeshList.Add(CarMesh1.Object);
+
+	
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh2(TEXT("SkeletalMesh'/Game/ARCADE_Ultimate_Vehicles_Pack/Vehicles/Land/Racing/S_Class/Betelgeuse.Betelgeuse'"));
+	//if (CarMesh2.Succeeded())
+	SkeletalMeshList.Add(CarMesh2.Object);
+	
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh3(TEXT("SkeletalMesh'/Game/ARCADE_Ultimate_Vehicles_Pack/Vehicles/Land/Urban/Urban/Iapetus.Iapetus'"));
+	//if (CarMesh3.Succeeded())
+	SkeletalMeshList.Add(CarMesh3.Object);
+
+	
+
 	
 	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/Game/Vehicles/Vehicle/VehicleAnimationBlueprint"));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
@@ -61,24 +80,28 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 
 	// Wheels/Tyres
 	// Setup the wheels
-	VehicleMovement->WheelSetups.SetNum(4);
-	{
-		VehicleMovement->WheelSetups[0].WheelClass = UVehicleUE5WheelFront::StaticClass();
-		VehicleMovement->WheelSetups[0].BoneName = FName("PhysWheel_FL");
-		VehicleMovement->WheelSetups[0].AdditionalOffset = FVector(0.f, -8.f, 0.f);
+	//VehicleMovement->WheelSetups.SetNum(4);
+	//{
+	//	VehicleMovement->WheelSetups[0].WheelClass = UVehicleUE5WheelFront::StaticClass();
+	//	VehicleMovement->WheelSetups[0].BoneName = FName("PhysWheel_FL");
+	//	VehicleMovement->WheelSetups[0].AdditionalOffset = FVector(0.f, 0.f, 0.f);
+	//	//VehicleMovement->WheelSetups[0].AdditionalOffset = FVector(0.f, -8.f, 0.f);
 
-		VehicleMovement->WheelSetups[1].WheelClass = UVehicleUE5WheelFront::StaticClass();
-		VehicleMovement->WheelSetups[1].BoneName = FName("PhysWheel_FR");
-		VehicleMovement->WheelSetups[1].AdditionalOffset = FVector(0.f, 8.f, 0.f);
+	//	VehicleMovement->WheelSetups[1].WheelClass = UVehicleUE5WheelFront::StaticClass();
+	//	VehicleMovement->WheelSetups[1].BoneName = FName("PhysWheel_FR");
+	//	VehicleMovement->WheelSetups[1].AdditionalOffset = FVector(0.f, 0.f, 0.f);
+	//	//VehicleMovement->WheelSetups[1].AdditionalOffset = FVector(0.f, 8.f, 0.f);
 
-		VehicleMovement->WheelSetups[2].WheelClass = UVehicleUE5WheelRear::StaticClass();
-		VehicleMovement->WheelSetups[2].BoneName = FName("PhysWheel_BL");
-		VehicleMovement->WheelSetups[2].AdditionalOffset = FVector(0.f, -8.f, 0.f);
+	//	VehicleMovement->WheelSetups[2].WheelClass = UVehicleUE5WheelRear::StaticClass();
+	//	VehicleMovement->WheelSetups[2].BoneName = FName("PhysWheel_BL");
+	//	VehicleMovement->WheelSetups[2].AdditionalOffset = FVector(0.f, 0.f, 0.f);
+	//	//VehicleMovement->WheelSetups[2].AdditionalOffset = FVector(0.f, -8.f, 0.f);
 
-		VehicleMovement->WheelSetups[3].WheelClass = UVehicleUE5WheelRear::StaticClass();
-		VehicleMovement->WheelSetups[3].BoneName = FName("PhysWheel_BR");
-		VehicleMovement->WheelSetups[3].AdditionalOffset = FVector(0.f, 8.f, 0.f);
-	}
+	//	VehicleMovement->WheelSetups[3].WheelClass = UVehicleUE5WheelRear::StaticClass();
+	//	VehicleMovement->WheelSetups[3].BoneName = FName("PhysWheel_BR");
+	//	VehicleMovement->WheelSetups[3].AdditionalOffset = FVector(0.f, 0.f, 0.f);
+	//	//VehicleMovement->WheelSetups[3].AdditionalOffset = FVector(0.f, 8.f, 0.f);
+	//}
 
 	// Engine 
 	// Torque setup
@@ -109,7 +132,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	// Physics settings
 	// Adjust the center of mass - the buggy is quite low
 	UPrimitiveComponent* UpdatedPrimitive = Cast<UPrimitiveComponent>(VehicleMovement->UpdatedComponent);
-	UpdatedPrimitive->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	UpdatedPrimitive->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	if (UpdatedPrimitive)
 	{
 		UpdatedPrimitive->BodyInstance.COMNudge = FVector(8.0f, 0.0f, -15.0f);
@@ -120,6 +143,11 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 
 	// Set the inertia scale. This controls how the mass of the vehicle is distributed.
 	VehicleMovement->InertiaTensorScale = FVector(1.0f, 1.333f, 1.2f);
+	VehicleMovement->SetSleeping(false);
+	VehicleMovement->SetIsReplicated(true);
+	VehicleMovement->SleepThreshold = 0;
+	GetMesh()->SetIsReplicated(true);
+
 
 	RotatingAnchorSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RotatingSceneComponent"));
 	RotatingAnchorSceneComponent->SetupAttachment(RootComponent);
@@ -201,6 +229,7 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	bIsLowFriction = false;
 	bInReverseGear = false;
 	bWelcomeClosed = true;
+	NetUpdateFrequency = 70;
 }
 
 void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -214,13 +243,14 @@ void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AVehicleUE5Pawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AVehicleUE5Pawn::MoveRight);
+	//PlayerInputComponent->BindAction("ChangeCar", IE_Released,this, &AVehicleUE5Pawn::ChangeSkeletalMeshAndAnimBlueprint);
 	//PlayerInputComponent->BindAxis(LookUpBinding, this, &AVehicleUE5Pawn::LookUpCamera);
-	PlayerInputComponent->BindAxis(LookRightBinding);
+	//PlayerInputComponent->BindAxis(LookRightBinding);
 
 	//PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &AVehicleUE5Pawn::OnHandbrakePressed);
 	//PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &AVehicleUE5Pawn::OnHandbrakeReleased);
 	//PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &AVehicleUE5Pawn::OnToggleCamera);
-
+	//PlayerInputComponent->BindAction("FireBullets", IE_Pressed, this, &AVehicleUE5Pawn::VehicleAttackLaser);
 	//PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AVehicleUE5Pawn::OnResetVR); 
 
 	const APlayerController* PC = GetController<APlayerController>();
@@ -236,7 +266,12 @@ void AVehicleUE5Pawn::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	EnhancedPlayerInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveOnJoyStick);
 	//EnhancedPlayerInputComponent->BindAction(IA_MoveCamera, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::MoveCamera);
-
+	EnhancedPlayerInputComponent->BindAction(IA_FireMainWeapon, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::VehicleAttackLaser);
+	EnhancedPlayerInputComponent->BindAction(IA_Shield, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::VehicleGetImmunity);
+	
+	EnhancedPlayerInputComponent->BindAction(IA_ChangeVehicle, ETriggerEvent::Triggered, this, &AVehicleUE5Pawn::FireAbilityChangeVehicle);
+	EnhancedPlayerInputComponent->BindAction(IA_HandBrake, ETriggerEvent::Started, this, &AVehicleUE5Pawn::OnHandbrakePressed);
+	EnhancedPlayerInputComponent->BindAction(IA_HandBrake, ETriggerEvent::Completed, this, &AVehicleUE5Pawn::OnHandbrakeReleased);
 	BindASCInput();
 
 }
@@ -252,6 +287,17 @@ void AVehicleUE5Pawn::MoveCamera(const FInputActionValue& stickPos)
 	FVector2D JoystickPosition = stickPos.Get<FVector2D>();
 	UE_LOG(LogTemp, Warning, TEXT("Move Camera: %s"), *JoystickPosition.ToString());
 	
+}
+
+void AVehicleUE5Pawn::OnButtonPressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed"));
+	//ChangeSkeletalMeshAndAnimBlueprint();
+}
+
+void AVehicleUE5Pawn::OnButtonReleased()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnButtonReleased"));
 }
 
 void AVehicleUE5Pawn::MoveOnJoyStick(const FInputActionValue& stickPos)
@@ -305,11 +351,13 @@ void AVehicleUE5Pawn::MoveRight(float Val)
 
 void AVehicleUE5Pawn::OnHandbrakePressed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnHandbrakePressed"));
 	GetVehicleMovementComponent()->SetHandbrakeInput(true);
 }
 
 void AVehicleUE5Pawn::OnHandbrakeReleased()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OnHandbrakeReleased"));
 	GetVehicleMovementComponent()->SetHandbrakeInput(false);
 }
 
@@ -391,6 +439,8 @@ void AVehicleUE5Pawn::BeginPlay()
 	// Start an engine sound playing
 	EngineSoundComponent->Play();
 
+
+	ReArrangeVehcilePhysicsWheels(GetVehicleMovement());
 	//DisableInput(GetLocalViewingPlayerController());
 }
 
@@ -421,7 +471,7 @@ void AVehicleUE5Pawn::InitializeFloatingStatusBar()
 				UIFloatingStatusBarComponent->SetWidget(PlayerInfoWidget);
 				PlayerInfoWidget->SetHealthBar(GetHealth() / GetMaxHealth());
 				PlayerInfoWidget->SetNitroManaBar(GetMana() / GetMaxMana());
-				UE_LOG(LogTemp, Warning, TEXT("Vehicle UI Setup Done on Server. "));
+				UE_LOG(LogTemp, Warning, TEXT("Vehicle UI Setup Done on Localplayer Controller. "));
 			}
 		}
 		
@@ -470,6 +520,112 @@ void AVehicleUE5Pawn::BindASCInput()
 		ASCInputBound = true;
 		UE_LOG(LogTemp, Warning, TEXT("BindASC to Input %s  "), *FString(__FUNCTION__));
 	}
+}
+
+void AVehicleUE5Pawn::OnRep_CurrentSkeletelMeshIndex()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ChangeSkeletalMeshAndAnimBlueprint Called"));
+	//currentSkeletelMeshIndex = currentSkeletelMeshIndex;
+	ChangeSkeletalMeshAndAnimBlueprint();
+}
+
+void AVehicleUE5Pawn::IncreamentSkeletalMeshIndex_Implementation()
+{
+	if (currentSkeletelMeshIndex < AninBPCarList.Num() - 1)
+	{
+		currentSkeletelMeshIndex++;
+	}
+	else
+	{
+		currentSkeletelMeshIndex = 0;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("currentSkeletelMeshIndex++ Called"));
+}
+
+bool AVehicleUE5Pawn::IncreamentSkeletalMeshIndex_Validate()
+{
+	return GetLocalRole() == ROLE_Authority;
+}
+
+void AVehicleUE5Pawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AVehicleUE5Pawn, currentSkeletelMeshIndex);
+}
+
+
+void AVehicleUE5Pawn::ChangeSkeletalMeshAndAnimBlueprint()
+{
+	/*if (currentSkeletelMeshIndex < AninBPCarList.Num() - 1)
+	{
+		currentSkeletelMeshIndex++;
+	}
+	else
+	{
+		currentSkeletelMeshIndex = 0;
+	}*/
+
+
+	//if (SkeletalMeshList.Num() < 0)
+	//	return;
+
+	GetMesh()->SetSkeletalMesh(SkeletalMeshList[currentSkeletelMeshIndex]);
+	GetMesh()->SetAnimClass(AninBPCarList[currentSkeletelMeshIndex]);
+	
+	//GetMesh()->SetSkeletalMesh(SkeletalMeshList[currentSkeletelMeshIndex]);
+	//GetMesh()->SetAnimClass(AninBPCarList[currentSkeletelMeshIndex]);
+
+	UE_LOG(LogTemp, Warning, TEXT("Changing Vehicle Mesh"));
+	/*
+	SetLazyLoadMesh();
+	
+	UE_LOG(LogTemp, Warning, TEXT("Changing Vehicle Mesh After Function"));*/
+
+
+}
+
+void AVehicleUE5Pawn::SetLazyLoadMesh()
+{
+
+	if (BaseMeshList[currentSkeletelMeshIndex].IsPending())
+	{
+		const FSoftObjectPath& AssetRef = BaseMeshList[currentSkeletelMeshIndex].ToSoftObjectPath();
+		FStreamableManager& StreamableManager =	UVehicleAssetManager::GetStreamableManager();
+		//FStreamableManager& Streamable = UGameGlobals::Get().StreamableManager;
+		
+		TSharedPtr<FStreamableHandle> OneHandle = StreamableManager.RequestAsyncLoad(AssetRef);
+
+		if (OneHandle)
+		{
+			BaseMeshList[currentSkeletelMeshIndex] = Cast<USkeletalMesh>(OneHandle->GetLoadedAsset());
+			{
+				if (BaseMeshList[currentSkeletelMeshIndex] != nullptr)
+				{
+					GetMesh()->SetDisableAnimCurves(true);
+					GetMesh()->SetSkeletalMesh(BaseMeshList[currentSkeletelMeshIndex].Get());
+					GetMesh()->SetAnimClass(AninBPCarList[currentSkeletelMeshIndex]);
+					GetMesh()->SetDisableAnimCurves(false);
+					UE_LOG(LogTemp, Warning, TEXT("Loaded Mesh, now changing it"));
+				}
+			}
+		}
+	}
+
+	else if (BaseMeshList[currentSkeletelMeshIndex].IsValid())
+	{
+		GetMesh()->SetSkeletalMesh(BaseMeshList[currentSkeletelMeshIndex].Get());
+		GetMesh()->SetAnimClass(AninBPCarList[currentSkeletelMeshIndex]);
+		UE_LOG(LogTemp, Warning, TEXT("Loaded ALReady!! , now changing it"));
+	}
+
+	
+	
+}
+
+void AVehicleUE5Pawn::AssetSkeletalMeshLoaded()
+{
+
 }
 
 void AVehicleUE5Pawn::RemoveCharacterAbilities()
@@ -701,6 +857,11 @@ void AVehicleUE5Pawn::VehicleDie()
 		EffectsTagsRemove.AddTag(EffectRemoveOnDeathTag);
 		int32 NumEffectsRemoved = AbilitySystemComponent->RemoveActiveEffectsWithTags(EffectsTagsRemove);
 		AbilitySystemComponent->AddLooseGameplayTag(DeadTag);
+		
+		if (GetFloatingStatusBar() != nullptr)
+			GetFloatingStatusBar()->SetVisibility(ESlateVisibility::Hidden);
+		PawnCollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
 		GetWorldTimerManager().SetTimer(TimeHandle_Pawn, this, &AVehicleUE5Pawn::DestroyPawnTimely, DelayInDeathTime);
 		
 	}
@@ -740,7 +901,11 @@ void AVehicleUE5Pawn::VehicleAttackLaser()
 	{
 		FGameplayAbilitySpec* FireAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[0]);
 
-		GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[0], true);
+		
+		if (GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[0], true))
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Activated Ability Successfully ! %s  "), *FString(__FUNCTION__));
+		}
 
 
 	}
@@ -749,24 +914,63 @@ void AVehicleUE5Pawn::VehicleAttackLaser()
 
 void AVehicleUE5Pawn::VehicleGetImmunity()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("Trying Activate Immunity Ability"));
 	if (GetAbilitySystemComponent() != nullptr)
 	{
-		FGameplayAbilitySpec* ImmunityAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[1]);
+		//FGameplayAbilitySpec* ImmunityAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[1]);
 
-		GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[1], true);
+		//GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[1], true);
 
 		//GetAbilitySystemComponent()->AddMinimalReplicationGameplayTag(PlayerImmunityTag);
 		//UE_LOG(LogTemp, Warning, TEXT("Adding Player Immunity Tags "));
 		//FActiveGameplayEffect* activeEffect = nullptr;
 		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffectDelegate.Broadcast()
 		//GetAbilitySystemComponent()->OnImmunityBlockGameplayEffect(ImmunityAbilitySpec, activeEffect);
+
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(StartupEffects[0], GetVehicleLevel(), EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+		}
 	}
 }
 
+void AVehicleUE5Pawn::FireAbilityChangeVehicle()
+{
+	if (GetAbilitySystemComponent() != nullptr)
+	{
+		FGameplayAbilitySpec* FireAbilitySpec = GetAbilitySystemComponent()->FindAbilitySpecFromClass(DefaultVehicleAbilities[2]);
+
+
+		if (GetAbilitySystemComponent()->TryActivateAbilityByClass(DefaultVehicleAbilities[2], true))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Activated Change Vehicle Ability Successfully ! %s  "), *FString(__FUNCTION__));
+		}
+
+
+	}
+	
+}
+
+
+
 void AVehicleUE5Pawn::VehicleImmunityActivated()
 {
+	if (GetAbilitySystemComponent() != nullptr)
+	{
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
 
+		FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(StartupEffects[1], GetVehicleLevel(), EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent.Get());
+			UE_LOG(LogTemp, Warning, TEXT("Trying Activate Car Changing Effect"));
+		}
+	}
 }
 
 void AVehicleUE5Pawn::SetForReSettingPosition()

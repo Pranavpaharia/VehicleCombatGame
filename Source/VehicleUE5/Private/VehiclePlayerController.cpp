@@ -159,7 +159,7 @@ bool AVehiclePlayerController::StartPlayerGame_Validate()
 
 void AVehiclePlayerController::StartOfflineGame()
 {
-	GetPawn()->EnableInput(this);
+	//GetPawn()->EnableInput(this);
 	AVehicleUE5Pawn* VehiclePawn =  Cast<AVehicleUE5Pawn>(GetPawn());
 
 	check(VehiclePawn)

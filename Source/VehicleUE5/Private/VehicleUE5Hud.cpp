@@ -60,4 +60,12 @@ void AVehicleUE5Hud::DrawHUD()
 	}
 }
 
+void AVehicleUE5Hud::BeginPlay()
+{
+	Super::BeginPlay();
+
+
+
+}
+
 #undef LOCTEXT_NAMESPACE

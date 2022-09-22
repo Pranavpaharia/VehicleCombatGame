@@ -102,6 +102,7 @@ void AVehicleUE5GameMode::HandleStartingNewPlayer_Implementation(APlayerControll
 
 	UE_LOG(LogTemp, Warning, TEXT("Looking for Player Start for Newplayer"));
 
+	SendSessionIDToClient(NewPlayer);
 	
 
 	

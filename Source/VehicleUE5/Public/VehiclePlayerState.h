@@ -17,6 +17,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCandidateNameChanged, FString, candidateName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetColorIdEvent, int32, colorID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetSessionString, FString , sessionstringID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerScoreUpdate, int32, playerScore);
 
 
 UCLASS()
@@ -51,6 +52,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Replicated, ReplicatedUsing = OnRep_sessionStringID)
 	FString sessionStringID;
 
+	UPROPERTY(BlueprintReadOnly, Replicated, ReplicatedUsing = OnRep_PlayerScore)
+	int32 PlayerScore;
+
+	UFUNCTION()
+	void OnRep_PlayerScore();
+
 	UFUNCTION()
 	void OnRep_ColorId();
 
@@ -62,6 +69,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_sessionStringID();
+
+	UFUNCTION()
+	void IncreamentPlayerScore();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnReplicatedTextChat(FString const& PlayerName, FString const& Message);
@@ -85,6 +95,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSetSessionString OnSetSessionStringEvent;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerScoreUpdate OnPlayerScoreUpdate;
+
 
 	UFUNCTION()
 	void SetColorId(uint8 colorIndex);
@@ -99,6 +112,11 @@ public:
 	FORCEINLINE UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; };
 
 	FORCEINLINE UVehicleAttributeSet* GetAttributeSetBase() const { return AttributeSetBase; };
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetPlayerScore() const { return PlayerScore; };
+
+
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	bool IsAlive() const;

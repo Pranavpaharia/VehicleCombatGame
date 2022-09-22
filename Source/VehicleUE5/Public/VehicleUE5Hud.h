@@ -22,4 +22,6 @@ public:
 	virtual void DrawHUD() override;
 	// End AHUD interface
 
+	virtual void BeginPlay() override;
+
 };

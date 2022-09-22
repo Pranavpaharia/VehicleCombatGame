@@ -35,15 +35,26 @@ void UShieldVehicleGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHa
 		UE_LOG(LogTemp, Warning, TEXT("Calling On Server"));
 
 		const FGameplayEffectSpecHandle ImmunityEffectSpecHandle = MakeOutgoingGameplayEffectSpec(ShieldGameplayEffect, GetAbilityLevel());
+		
+		/*FGameplayEffectContextHandle contextHandle = ImmunityEffectSpecHandle.Data->GetEffectContext();
+		contextHandle.AddInstigator(VehiclePawn, VehiclePawn);
+		ImmunityEffectSpecHandle.Data.Get()->Initialize(Cast<UGameplayEffect>(ShieldGameplayEffect), contextHandle, GetAbilityLevel());
+		FGameplayEffectSpec* Spec = ImmunityEffectSpecHandle.Data.Get();*/
 
-		FGameplayEffectContextHandle contextHandle = ImmunityEffectSpecHandle.Data->GetEffectContext();
-
-		FGameplayEffectSpec* Spec = ImmunityEffectSpecHandle.Data.Get();
-
-		if (!Spec)
+		/*if (!Spec)
 		{
 			VehiclePawn->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec);
 			UE_LOG(LogTemp, Warning, TEXT("Applied Immunity Effect on Server"));
+		}*/
+
+		FGameplayEffectContextHandle EffectContext = VehiclePawn->GetAbilitySystemComponent()->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle NewHandle = VehiclePawn->GetAbilitySystemComponent()->MakeOutgoingSpec(ShieldGameplayEffect, GetAbilityLevel(), EffectContext);
+		if (NewHandle.IsValid())
+		{
+			FActiveGameplayEffectHandle ActiveGEHandle = VehiclePawn->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), VehiclePawn->GetAbilitySystemComponent());
+			UE_LOG(LogTemp, Warning, TEXT("Gameplay Effect is Applied to Self on Server"));
 		}
 
 

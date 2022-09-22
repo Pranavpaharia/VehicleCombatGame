@@ -13,7 +13,9 @@
 #include "Widgets/VehicleBaseInfoWidget.h"
 #include "Components/WidgetComponent.h"
 #include "Components/BoxComponent.h"
+#include "VehicleAnimationInstance.h"
 #include "VehicleUE5/VehicleUE5.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -139,6 +141,37 @@ public:
 	UPROPERTY(EditAnywhere, Category = Inputs)
 	UInputAction* IA_MoveCamera;
 
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_FireMainWeapon;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_Shield;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_ChangeVehicle;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UInputAction* IA_HandBrake;
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere, Category = Inputs)
+	TSubclassOf<USkeletalMesh>ListCars;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = Inputs)
+	TArray<TSoftObjectPtr<USkeletalMesh>> BaseMeshList;
+	//TArray<TSoftObjectPtr<USkeletalMesh>>
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = Inputs)
+	TArray<USkeletalMesh*> SkeletalMeshList;
+
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	TArray<TSubclassOf<UVehicleAnimationInstance>>AninBPCarList;
+
+	void AssetSkeletalMeshLoaded();
+
+	void OnButtonPressed();
+
+	void OnButtonReleased();
+
+	
 
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -158,6 +191,9 @@ public:
 
 	UFUNCTION(BlueprintCallable,BlueprintPure)
 	bool IsAlive() const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReArrangeVehcilePhysicsWheels(UChaosVehicleMovementComponent* PawnVehicleMovementComponent);
 
 protected:
 	virtual void BeginPlay() override;
@@ -180,6 +216,8 @@ protected:
 
 	void RemoveCharacterAbilities();
 
+	void FireAbilityChangeVehicle();
+
 	
 
 	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
@@ -192,10 +230,17 @@ protected:
 	TArray<TSubclassOf<UVehicleGameplayAbility>> DefaultVehicleAbilities;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> TestAbilities;
+
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TSubclassOf<UGameplayEffect> DefaultVehicleEffects;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 
 public:
 	// End Actor interface
@@ -264,6 +309,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable, Category = "Sound")
 	void PlayFireSound();
 
+	UFUNCTION(BlueprintCallable, Category = "Ability System")
+	void ChangeSkeletalMeshAndAnimBlueprint();
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Replicated, ReplicatedUsing = OnRep_CurrentSkeletelMeshIndex, Category = "Abilities")
+	uint8 currentSkeletelMeshIndex = 0;
+
+	UFUNCTION()
+	void OnRep_CurrentSkeletelMeshIndex();
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void IncreamentSkeletalMeshIndex();
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
@@ -282,6 +338,9 @@ private:
 	/** Non Slippery Material instance */
 	UPhysicalMaterial* NonSlipperyMaterial;
 
+	void SetLazyLoadMesh();
+
+	
 
 public:
 	/** Returns SpringArm subobject **/
