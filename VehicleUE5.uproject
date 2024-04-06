@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{FD2E6070-48DE-0110-CE47-0286E6FB9308}",
+	"EngineAssociation": "5.3",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -17,6 +17,10 @@
 		}
 	],
 	"Plugins": [
+		{
+			"Name": "GitSourceControl",
+			"Enabled": true
+		},
 		{
 			"Name": "PhysXVehicles",
 			"Enabled": false
