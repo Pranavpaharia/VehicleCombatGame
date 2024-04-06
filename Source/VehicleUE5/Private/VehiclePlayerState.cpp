@@ -103,7 +103,7 @@ void AVehiclePlayerState::RegisterPlayerWithSession(bool bWasFromInvite)
 	if (UOnlineEngineInterface::Get()->DoesSessionExist(GetWorld(),NAME_GameSession))
 	{
 		Super::RegisterPlayerWithSession(bWasFromInvite);
-		UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("GameSession"));
+		UEnum* EnumPtr = FindObject<UEnum>(this, TEXT("GameSession"));
 
 
 		UE_LOG(LogTemp, Warning, TEXT("Register Player with Session %s"), *(EnumPtr ? EnumPtr->GetNameStringByIndex(static_cast<uint8>(NAME_GameSession)) : TEXT("Invalid Enum")));
