@@ -420,9 +420,11 @@ void AVehicleUE5Pawn::Tick(float Delta)
 	}	
 
 	// Pass the engine RPM to the sound component
-	UChaosWheeledVehicleMovementComponent* WheeledVehicle = static_cast<UChaosWheeledVehicleMovementComponent*>(GetVehicleMovement());
-	float RPMToAudioScale = 2500.0f / WheeledVehicle->GetEngineMaxRotationSpeed();
-	EngineSoundComponent->SetFloatParameter(EngineAudioRPM, WheeledVehicle->GetEngineRotationSpeed()*RPMToAudioScale);
+	if (WheeledVehicle!= nullptr)
+	{
+		float RPMToAudioScale = 2500.0f / WheeledVehicle->GetEngineMaxRotationSpeed();
+		EngineSoundComponent->SetFloatParameter(EngineAudioRPM, WheeledVehicle->GetEngineRotationSpeed() * RPMToAudioScale);
+	}
 }
 
 void AVehicleUE5Pawn::BeginPlay()
@@ -442,11 +444,19 @@ void AVehicleUE5Pawn::BeginPlay()
 
 	ReArrangeVehcilePhysicsWheels(GetVehicleMovement());
 	//DisableInput(GetLocalViewingPlayerController());
+	
+	WheeledVehicle = static_cast<UChaosWheeledVehicleMovementComponent*>(GetVehicleMovement());
+
 }
 
 UVehicleBaseInfoWidget* AVehicleUE5Pawn::GetFloatingStatusBar()
 {
 	return PlayerInfoWidget;
+}
+
+UChaosWheeledVehicleMovementComponent* AVehicleUE5Pawn::GetWheelMovementComponent() const
+{
+		return WheeledVehicle;
 }
 
 void AVehicleUE5Pawn::OnResetVR()
@@ -565,8 +575,6 @@ void AVehicleUE5Pawn::ChangeSkeletalMeshAndAnimBlueprint()
 	{
 		currentSkeletelMeshIndex = 0;
 	}*/
-
-
 	//if (SkeletalMeshList.Num() < 0)
 	//	return;
 

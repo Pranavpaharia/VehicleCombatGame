@@ -165,13 +165,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = Inputs)
 	TArray<TSubclassOf<UVehicleAnimationInstance>>AninBPCarList;
 
+	UPROPERTY(EditAnywhere, Category = Inputs)
+	UChaosWheeledVehicleMovementComponent* WheeledVehicle;
+
 	void AssetSkeletalMeshLoaded();
 
 	void OnButtonPressed();
 
 	void OnButtonReleased();
-
-	
 
 	// Begin Pawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -191,6 +192,9 @@ public:
 
 	UFUNCTION(BlueprintCallable,BlueprintPure)
 	bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable,BlueprintPure)
+	UChaosWheeledVehicleMovementComponent* GetWheelMovementComponent() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ReArrangeVehcilePhysicsWheels(UChaosVehicleMovementComponent* PawnVehicleMovementComponent);
