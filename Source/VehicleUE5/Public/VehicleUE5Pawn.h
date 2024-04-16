@@ -16,6 +16,7 @@
 #include "VehicleAnimationInstance.h"
 #include "VehicleUE5/VehicleUE5.h"
 #include "Animation/SkeletalMeshActor.h"
+#include "NiagaraComponent.h"
 #include "VehicleUE5Pawn.generated.h"
 
 class UPhysicalMaterial;
@@ -65,7 +66,10 @@ class AVehicleUE5Pawn : public AWheeledVehiclePawn ,public IAbilitySystemInterfa
 	USceneComponent* RotatingAnchorSceneComponent;
 
 	UPROPERTY(Category = Display, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* PawnCollisionComponent;
+	UBoxComponent* PawnCollisionComponent;;
+
+	UPROPERTY(Category = Display, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UNiagaraSystem* NiagaraExplosion;
 
 	TWeakObjectPtr <UVehicleAbilitySystemComponent> AbilitySystemComponent;
 
@@ -222,6 +226,9 @@ protected:
 
 	void FireAbilityChangeVehicle();
 
+	void InitiateExplosion();
+
+	
 	
 
 	FORCEINLINE int32 GetAbilityLevel(EVehicleBasicAbilityID AbilityID) const { return 1; }
@@ -324,6 +331,13 @@ public:
 
 	UFUNCTION(Server,Reliable,WithValidation)
 	void IncreamentSkeletalMeshIndex();
+
+	FDelegateHandle HealthChangedDelegateHandle;
+
+	// Attribute changed callbacks
+	virtual void HealthChanged(const FOnAttributeChangeData& Data);
+
+
 private:
 	/** 
 	 * Activate In-Car camera. Enable camera and sets visibility of incar hud display
@@ -343,6 +357,8 @@ private:
 	UPhysicalMaterial* NonSlipperyMaterial;
 
 	void SetLazyLoadMesh();
+
+	bool bVehicleDeathFlag = false;
 
 	
 

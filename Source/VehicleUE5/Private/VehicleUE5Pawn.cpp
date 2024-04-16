@@ -26,6 +26,7 @@
 #include "Engine/StreamableManager.h"
 #include "VehicleAssetManager.h"
 #include "VehiclePlayerState.h"
+#include "NiagaraFunctionLibrary.h"
 
 
 const FName AVehicleUE5Pawn::LookUpBinding("LookUp");
@@ -62,9 +63,11 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 	//if (CarMesh3.Succeeded())
 	SkeletalMeshList.Add(CarMesh3.Object);
 
-	
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> NiagaraParticle(TEXT("/Script/Niagara.NiagaraSystem'/Game/M5VFXVOL2/Niagara/Explosion/NFire_Exp_03.NFire_Exp_03'"));
+	NiagaraExplosion = NiagaraParticle.Object;
 
-	
+
+
 	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/Game/Vehicles/Vehicle/VehicleAnimationBlueprint"));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	GetMesh()->SetAnimInstanceClass(AnimBPClass.Class);
@@ -75,6 +78,9 @@ AVehicleUE5Pawn::AVehicleUE5Pawn()
 		
 	static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> NonSlipperyMat(TEXT("/Game/Vehicles/PhysicsMaterials/NonSlippery.NonSlippery"));
 	NonSlipperyMaterial = NonSlipperyMat.Object;
+
+
+
 
 	UChaosWheeledVehicleMovementComponent* VehicleMovement = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 
@@ -782,6 +788,9 @@ void AVehicleUE5Pawn::PossessedBy(AController* NewController)
 
 		InitializeAttributes();
 		InitializeFloatingStatusBar();
+
+		HealthChangedDelegateHandle = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributesSetBase->GetHealthAttribute()).AddUObject(this, &AVehicleUE5Pawn::HealthChanged);
+
 	}
 
 }
@@ -852,7 +861,6 @@ UAbilitySystemComponent* AVehicleUE5Pawn::GetAbilitySystemComponent() const
 void AVehicleUE5Pawn::VehicleDie()
 {
 	RemoveCharacterAbilities();
-
 	GetVehicleMovementComponent()->StopMovementImmediately();
 	GetVehicleMovementComponent()->SetBrakeInput(1.0f);
 
@@ -874,9 +882,52 @@ void AVehicleUE5Pawn::VehicleDie()
 		
 	}
 
-	
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("On Server"));
+	}
+	else
+	{
+		InitiateExplosion();
+		UE_LOG(LogTemp, Warning, TEXT("In Client"));
+	}
+
+
 	
 }
+
+void AVehicleUE5Pawn::InitiateExplosion()
+{
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraExplosion, GetActorLocation(), FRotator::ZeroRotator, FVector(1.f), true, true, ENCPoolMethod::None, true);
+}
+
+void AVehicleUE5Pawn::HealthChanged(const FOnAttributeChangeData& Data)
+{
+	float Health = Data.NewValue;
+
+	// Update floating status bar
+	
+
+	// If the minion died, handle death
+	if (!IsAlive() && !AbilitySystemComponent->HasMatchingGameplayTag(DeadTag))
+	{
+		
+		//if (GetLocalRole() == ROLE_Authority)
+		//{
+		//	UE_LOG(LogTemp, Warning, TEXT("On Server"));
+		//}
+		//else
+		//{
+		//	UE_LOG(LogTemp, Warning, TEXT("In Client"));
+		//}
+			
+	}
+}
+
+
+
+
 
 void AVehicleUE5Pawn::DestroyPawnTimely()
 {
